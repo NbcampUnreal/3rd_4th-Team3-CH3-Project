@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Perception/AIPerceptionTypes.h"
 #include "AZombieAIController.generated.h"
 
 class UBehaviorTree;
-class UBlackboardComponent;
+class ATargetPoint;
 
 UCLASS()
 class LIGHTHOUSEDEFENSE_API AAZombieAIController : public AAIController
@@ -18,18 +19,19 @@ public:
     AAZombieAIController();
 
 protected:
-    virtual void BeginPlay() override;//AI 컨트롤러가 월드에 나타날때 호출
+    virtual void OnPossess(APawn* InPawn) override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
     //AI가 사용할 행동 트리 에셋
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
     UBehaviorTree* BehaviorTreeAsset;
 
-    //AI가 사용할 블랙보드 컴포넌트
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite,Category="AI")
-    UBlackboardComponent* BlackboardComponent;
-
     //플레이어를 감지했을 때 호출될 함수
     UFUNCTION()
     void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+    //등대 위치를 지정할 TargetPoint를 Blueprint에서 할당
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
+    ATargetPoint* LighthouseTargetPoint;
 };
