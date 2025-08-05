@@ -1,53 +1,68 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "BTTask_Attack.h"
+#include "AITurretPawn.h"
 #include "AIController.h"
-#include "GameFramework/Character.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
 
 UBTTask_Attack::UBTTask_Attack()
 {
-    NodeName = TEXT("Attack Player");
-    AttackDuration = 1.0f; // 기본 공격 시간
-    AttackDamage = 10.0f; // 기본 공격 데미지
-    AttackRange = 150.0f; // 기본 공격 범위 (캐릭터 캡슐 크기에 따라 조절)
+    NodeName = TEXT("Attack");
+    bNotifyTick = true;
+    TargetActorKey.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(UBTTask_Attack, TargetActorKey), AActor::StaticClass());
 }
+
 
 EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    AAIController* AIController = OwnerComp.GetAIOwner();
-    ACharacter* AICharacter = Cast<ACharacter>(AIController->GetPawn());
+    // 1. 터렛 폰과 블랙보드 컴포넌트 유효성 검사
+    AAITurretPawn* TurretPawn = Cast<AAITurretPawn>(OwnerComp.GetAIOwner()->GetPawn());
     UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 
-    if(!AICharacter || !BlackboardComp)
+    if (!TurretPawn || !BlackboardComp || TurretPawn->CurrentState == ETurretState::Disabled)
     {
         return EBTNodeResult::Failed;
     }
 
+    // 2. 타겟 액터 유효성 검사
     AActor* TargetActor = Cast<AActor>(BlackboardComp->GetValueAsObject(TargetActorKey.SelectedKeyName));
-    if(!TargetActor)
+    if (!TargetActor || !TargetActor->IsValidLowLevel())
     {
         return EBTNodeResult::Failed;
     }
 
-    //타겟과의 거리 체크
-    float DistanceToTarget = FVector::Dist(AICharacter->GetActorLocation(), TargetActor->GetActorLocation());
-    if (DistanceToTarget > AttackRange)
-    {
-        //타겟이 공격 범위를 벗어났다면 실패
-        return EBTNodeResult::Failed;
-    }
-    //공격 애니메이션 재생
+    // 3. 공격 상태로 변경하고 발사 타이머 시작
+    TurretPawn->CurrentState = ETurretState::Attacking;
+    TurretPawn->GetWorld()->GetTimerManager().SetTimer(TurretPawn->FireTimerHandle, TurretPawn, &AAITurretPawn::Fire, TurretPawn->FireRate, true);
 
-    //데미지 적용 로직
-    UGameplayStatics::ApplyDamage(TargetActor, AttackDamage, AIController, AICharacter, UDamageType::StaticClass());
-    UE_LOG(LogTemp, Warning, TEXT("Zombie %s attacked %s for %.1f damage!"), *AICharacter->GetName(), *TargetActor->GetName(), AttackDamage);
-
-    //task 성공 및 완료 대기(AttackDuration 초 동안)
-    //FinishLatentTask를 사용하려면 bNotifyTaskFinished를 true로 설정해야 합니다.
+    // 4. TickTask를 위해 InProgress 반환
     return EBTNodeResult::InProgress;
+}
 
+void UBTTask_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+    // 1. 터렛 폰과 블랙보드 컴포넌트 유효성 검사 (ExecuteTask와 동일)
+    AAITurretPawn* TurretPawn = Cast<AAITurretPawn>(OwnerComp.GetAIOwner()->GetPawn());
+    UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
+
+    // 2. TurretPawn과 BlackboardComp가 유효하지 않으면 즉시 종료
+    if (!TurretPawn || !BlackboardComp)
+    {
+        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+        return;
+    }
+
+    // 3. 타겟 액터 유효성 검사
+    AActor* TargetActor = Cast<AActor>(BlackboardComp->GetValueAsObject(TargetActorKey.SelectedKeyName));
+
+    // 4. 타겟이 유효하지 않거나, 터렛이 비활성화되면 태스크 실패
+    if (!TargetActor || !TargetActor->IsValidLowLevel() || TurretPawn->CurrentState == ETurretState::Disabled)
+    {
+        // 공격 상태를 스캔 상태로 되돌리고 타이머를 클리어
+        TurretPawn->CurrentState = ETurretState::Scanning;
+        TurretPawn->GetWorld()->GetTimerManager().ClearTimer(TurretPawn->FireTimerHandle);
+        BlackboardComp->ClearValue(TargetActorKey.SelectedKeyName);
+
+        // 태스크 실패로 종료
+        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+    }
 }

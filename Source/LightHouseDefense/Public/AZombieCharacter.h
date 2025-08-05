@@ -7,7 +7,7 @@
 #include "AZombieCharacter.generated.h"
 
 UCLASS()
-class LIGHTHOUSEDEFENSE_API AAZombieCharacter : public ACharacter
+class LIGHTHOUSEDEFENSE_API AAZombieCharacter : public ACharacter 
 {
 	GENERATED_BODY()
 
@@ -32,4 +32,6 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
     TSubclassOf<class AAIController> ZombieAIControllerClass;
 
+private:
+    
 };

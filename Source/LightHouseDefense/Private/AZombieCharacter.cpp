@@ -33,12 +33,16 @@ AAZombieCharacter::AAZombieCharacter()
     //AIController 클래스 설정
     AIControllerClass = AAIController::StaticClass();//기본 AIController 클래스를 사용
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned; // 월드에 배치되거나 스폰될때 AI가 제어
+
+
 }
 
 // Called when the game starts or when spawned
 void AAZombieCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+
 	
 }
 
@@ -55,4 +59,3 @@ void AAZombieCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
-
