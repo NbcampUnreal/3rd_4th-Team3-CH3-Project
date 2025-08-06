@@ -9,6 +9,9 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
+				"Core",
+				"CoreUObject",
+				"Engine"
 
 				"AIModule",
 				"Engine"
