@@ -65,6 +65,9 @@ public:
     FTimerHandle FireTimerHandle;
 
     UFUNCTION(BlueprintCallable, Category = "Turret")
+    void EnableTurretNeckbowdown();
+
+    UFUNCTION(BlueprintCallable, Category = "Turret")
     void DisableTurret();
 
     UFUNCTION(BlueprintCallable, Category = "Turret")

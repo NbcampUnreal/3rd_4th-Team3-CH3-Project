@@ -43,7 +43,7 @@ void AAITurretPawn::BeginPlay()
     {
         SpawnDefaultController();
     }
-    InstallTurret();//일단 태스트용으로 시작하면 바로 scanning으로 전환
+    //InstallTurret();//일단 태스트용으로 시작하면 바로 scanning으로 전환
     
 }
 
@@ -55,7 +55,11 @@ void AAITurretPawn::Tick(float DeltaTime)
     {
         ScanForTargets(DeltaTime);
     }
-   
+    if (CurrentState == ETurretState::Disabled)
+    {
+        DisableTurret();
+    }
+
 }
 
 void AAITurretPawn::DisableTurret()
@@ -69,6 +73,7 @@ void AAITurretPawn::DisableTurret()
         MyController->StopMovement();
         // 비헤이비어 트리 실행을 중단하거나, Disable 상태를 블랙보드에 설정하여 AI 로직이 멈추도록 유도
     }
+    EnableTurretNeckbowdown();
 }
 
 void AAITurretPawn::EnableTurret()
@@ -138,4 +143,10 @@ void AAITurretPawn::ScanForTargets(float DeltaTime)
     // TurretNeckPivot의 상대 회전값을 설정합니다.
     // TurretNeck과 TurretHead가 TurretNeckPivot에 부착되어 있으므로 함께 회전합니다.
     TurretNeckPivot->SetRelativeRotation(NewRotation);
+}
+void AAITurretPawn::EnableTurretNeckbowdown()
+{
+    FRotator NeckBowDown(50, 0, 50);
+
+    TurretNeckPivot->SetRelativeRotation(NeckBowDown);
 }
