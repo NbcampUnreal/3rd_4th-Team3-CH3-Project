@@ -12,6 +12,10 @@
 				"Core",
 				"CoreUObject",
 				"Engine"
+
+				"AIModule",
+				"Engine"
+
 			]
 		}
 	],
