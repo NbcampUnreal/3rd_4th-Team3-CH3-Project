@@ -1,4 +1,3 @@
-
 #include "TurretAIController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -6,25 +5,26 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "AZombieCharacter.h"
 #include "AITurretPawn.h"
-#include "Perception/AIPerceptionTypes.h"
 
 ATurretAIController::ATurretAIController()
 {
-    // 생성자에서는 컴포넌트를 생성하고, 기본 프로퍼티를 설정합니다.
     BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
-    PerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComponent"));
 
-    // UAISenseConfig_Sight 객체만 생성하여 멤버 변수에 할당
+    // SightConfig는 부모 클래스에 없으므로 여기서 생성합니다.
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
 
-    if (SightConfig)
+    // GetPerceptionComponent()를 사용해 부모의 컴포넌트에 접근합니다.
+    UAIPerceptionComponent* MyPerceptionComponent = GetPerceptionComponent();
+    if (MyPerceptionComponent && SightConfig)
     {
         SightConfig->SightRadius = 2500.0f;
         SightConfig->LoseSightRadius = 3000.0f;
         SightConfig->PeripheralVisionAngleDegrees = 90.0f;
         SightConfig->DetectionByAffiliation.bDetectEnemies = true;
         SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
-        SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+        SightConfig->DetectionByAffiliation.bDetectNeutrals = false;
+
+        MyPerceptionComponent->ConfigureSense(*SightConfig);
     }
 
     SetGenericTeamId(FGenericTeamId(2));
@@ -34,13 +34,11 @@ void ATurretAIController::BeginPlay()
 {
     Super::BeginPlay();
 
-    // BeginPlay()에서 AI Perception 컴포넌트 설정
     UAIPerceptionComponent* MyPerceptionComponent = GetPerceptionComponent();
-    if (PerceptionComponent && SightConfig)
+    if (MyPerceptionComponent && SightConfig)
     {
-        PerceptionComponent->ConfigureSense(*SightConfig);
-        PerceptionComponent->SetDominantSense(SightConfig->GetClass());
-        PerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &ATurretAIController::OnTargetPerceptionUpdated);
+        MyPerceptionComponent->SetDominantSense(SightConfig->GetClass());
+        MyPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &ATurretAIController::OnTargetPerceptionUpdated);
     }
 
     AAITurretPawn* TurretPawn = Cast<AAITurretPawn>(GetPawn());
