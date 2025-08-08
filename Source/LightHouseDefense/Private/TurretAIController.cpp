@@ -19,7 +19,7 @@ ATurretAIController::ATurretAIController()
     {
         SightConfig->SightRadius = 2500.0f;
         SightConfig->LoseSightRadius = 3000.0f;
-        SightConfig->PeripheralVisionAngleDegrees = 90.0f;
+        SightConfig->PeripheralVisionAngleDegrees = 180.0f;
         SightConfig->DetectionByAffiliation.bDetectEnemies = true;
         SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
         SightConfig->DetectionByAffiliation.bDetectNeutrals = false;

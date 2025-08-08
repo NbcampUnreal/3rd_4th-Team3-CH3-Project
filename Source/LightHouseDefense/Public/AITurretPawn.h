@@ -84,6 +84,7 @@ public:
     // 발사 타이머 핸들
     FTimerHandle FireTimerHandle;
 
+
 protected:
     // 스캔 회전 로직에 사용되는 변수
     float CurrentYawRotation = 0.0f;
