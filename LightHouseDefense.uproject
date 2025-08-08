@@ -13,7 +13,6 @@
 				"CoreUObject",
 				"AIModule",
 				"Engine"
-
 			]
 		}
 	],
@@ -24,6 +23,10 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "Water",
+			"Enabled": true
 		}
 	]
 }
