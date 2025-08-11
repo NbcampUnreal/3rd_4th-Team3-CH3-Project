@@ -13,7 +13,8 @@
 				"CoreUObject",
 				"AIModule",
 				"Engine",
-                                "UMG"
+				"CommonUI",
+				"DeveloperSettings"
 			]
 		}
 	],
@@ -27,6 +28,10 @@
 		},
 		{
 			"Name": "Water",
+			"Enabled": true
+		},
+		{
+			"Name": "CommonUI",
 			"Enabled": true
 		},
 		{
