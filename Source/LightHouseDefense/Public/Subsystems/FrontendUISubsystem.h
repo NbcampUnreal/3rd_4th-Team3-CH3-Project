@@ -9,6 +9,7 @@
 class UWidget_PrimaryLayout;
 struct FGameplayTag;
 class UWidget_ActivatableBase;
+class UFrontendCommonButtonBase;
 
 enum class EAsyncPushWidgetState : uint8 // 비동기 위젯 푸시 상태를 나타내는 열거형 (1바이트 크기)
 {
@@ -16,6 +17,11 @@ enum class EAsyncPushWidgetState : uint8 // 비동기 위젯 푸시 상태를 �
     AfterPush             // 위젯이 스택에 푸시된 직후 상태
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnButtonDescriptionTextUpdatedDelegate,
+    UFrontendCommonButtonBase*,
+    BroadcastingButton,
+    FText,
+    DescriptionText);
 /**
  * - Frontend UI를 관리하는 GameInstance 서브시스템
  * - Primary Layout 위젯 등록, SoftClass UI 위젯의 비동기 로드 및 스택 푸시 기능 제공
@@ -40,6 +46,9 @@ public:
         TSoftClassPtr<UWidget_ActivatableBase> InSoftWidgetClass, // 로드할 SoftClass UI 위젯
         TFunction<void(EAsyncPushWidgetState, UWidget_ActivatableBase*)> AysncPushStateCallback // 상태 변화 시 호출될 콜백
     );
+
+    UPROPERTY(BlueprintAssignable)
+    FOnButtonDescriptionTextUpdatedDelegate OnButtonDescriptionTextUpdated;
 
 private:
     UPROPERTY(Transient) // 저장/직렬화되지 않는 임시 값

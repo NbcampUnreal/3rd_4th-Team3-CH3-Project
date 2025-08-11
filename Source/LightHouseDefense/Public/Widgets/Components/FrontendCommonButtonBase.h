@@ -25,6 +25,12 @@ private:
     virtual void NativePreConstruct() override; // 위젯이 생성되기 전에 호출되는 초기화 함수
     //~ End UUserWidget Interface
 
+    //~ Begin UCommonButtonBase Interface
+    virtual void NativeOnCurrentTextStyleChanged() override;
+    virtual void NativeOnHovered() override;
+    virtual void NativeOnUnhovered() override;
+    //~ End UCommonButtonBase Interface
+
     // **** Bound Widgets **** //
     UPROPERTY(meta = (BindWidgetOptional)) // 블루프린트 위젯에서 연결 가능, 없더라도 동작
         UCommonTextBlock* CommonTextBlock_ButtonText; // 버튼 표시 텍스트 블록 위젯
