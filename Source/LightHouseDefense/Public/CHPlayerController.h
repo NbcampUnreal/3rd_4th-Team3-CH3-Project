@@ -38,6 +38,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
     class UInputAction* IA_ShotgunAction;
 
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
     UInputAction* FireAction;
 
@@ -46,6 +47,9 @@ public:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
     UInputAction* ReloadAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    TSubclassOf<UUserWidget> HUDWidgetClass;
 
     virtual void SetupInputComponent() override;
 
