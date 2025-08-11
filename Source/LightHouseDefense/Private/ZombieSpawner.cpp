@@ -71,3 +71,19 @@ void AZombieSpawner::SpawnSingleZombie()
     }
 
 }
+
+void AZombieSpawner::StopSpawning()
+{
+    GetWorldTimerManager().ClearTimer(SpawnTimerHandle);
+    SpawnedCount = 0;
+}
+
+void AZombieSpawner::PauseSpawning()
+{
+    GetWorldTimerManager().PauseTimer(SpawnTimerHandle);
+}
+
+void AZombieSpawner::ResumeSpawning()
+{
+    GetWorldTimerManager().UnPauseTimer(SpawnTimerHandle);
+}

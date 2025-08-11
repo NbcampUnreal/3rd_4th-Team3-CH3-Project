@@ -14,6 +14,10 @@ public:
     // 카운트다운 타이머를 시작
     void StartCountdown();
 
+    // ⬇⬇ 추가 (게임 일시정지/재개용)
+    UFUNCTION(BlueprintCallable) void PauseCountdown();
+    UFUNCTION(BlueprintCallable) void ResumeCountdown();
+
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeUpdated, int32, RemainingTime);
 
     // 델리게이트 인스턴스. 다른 클래스(예: HUD, 위젯 등)에서 여기에 바인딩하여 타이머 UI 업데이트 가능

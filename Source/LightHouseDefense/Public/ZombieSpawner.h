@@ -15,6 +15,10 @@ class LIGHTHOUSEDEFENSE_API AZombieSpawner : public AActor
 public:
     AZombieSpawner();
 
+    UFUNCTION(BlueprintCallable, Category = "Spawner") void StopSpawning();
+    UFUNCTION(BlueprintCallable, Category = "Spawner") void PauseSpawning();
+    UFUNCTION(BlueprintCallable, Category = "Spawner") void ResumeSpawning();
+
 protected:
     virtual void BeginPlay() override;
 
