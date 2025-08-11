@@ -40,7 +40,8 @@ void AAITurretPawn::BeginPlay()
     {
         SpawnDefaultController();
     }
-    InstallTurret();//일단활성화
+    DisableTurret();//테스트용 비활성화 
+    //InstallTurret();//테스트용 일단 활성화
 }
 
 void AAITurretPawn::Tick(float DeltaTime)
@@ -126,6 +127,6 @@ void AAITurretPawn::ScanForTargets(float DeltaTime)
 
 void AAITurretPawn::EnableTurretNeckbowdown()
 {
-    FRotator NeckBowDown(50, 0, 50);
+    FRotator NeckBowDown(-50, 0, 50);
     TurretNeckPivot->SetRelativeRotation(NeckBowDown);
 }
