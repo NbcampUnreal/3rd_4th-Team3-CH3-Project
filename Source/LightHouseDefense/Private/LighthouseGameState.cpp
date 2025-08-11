@@ -56,3 +56,14 @@ int32 ALighthouseGameState::GetRemainingTime() const
 {
     return RemainingTime;
 }
+
+
+void ALighthouseGameState::PauseCountdown()
+{
+    GetWorldTimerManager().PauseTimer(CountdownTimerHandle);
+}
+
+void ALighthouseGameState::ResumeCountdown()
+{
+    GetWorldTimerManager().UnPauseTimer(CountdownTimerHandle);
+}

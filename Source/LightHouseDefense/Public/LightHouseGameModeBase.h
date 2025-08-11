@@ -15,4 +15,7 @@ protected:
 
 public:
     ALightHouseGameModeBase();
+
+    UFUNCTION(BlueprintCallable)
+    void StopRun();
 };
