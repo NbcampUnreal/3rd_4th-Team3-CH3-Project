@@ -6,6 +6,7 @@
 #include "CommonActivatableWidget.h"
 #include "Widget_ActivatableBase.generated.h"
 
+class AFrontendPlayerController;
 /**
  *
  */
@@ -13,5 +14,12 @@ UCLASS(Abstract, BlueprintType, meta = (DisableNaiveTick)) // 추상 클래스, 
 class LIGHTHOUSEDEFENSE_API UWidget_ActivatableBase : public UCommonActivatableWidget // 공통 활성화 가능한 위젯의 기본 클래스
 {
     GENERATED_BODY()
+
+protected:
+    UFUNCTION(BlueprintPure)
+    AFrontendPlayerController* GetOwningFrontendPlayerController();
+
+private:
+    TWeakObjectPtr<AFrontendPlayerController> CachedOwningFrontendPC;
 };
 

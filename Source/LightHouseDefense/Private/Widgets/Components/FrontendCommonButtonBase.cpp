@@ -3,6 +3,7 @@
 
 #include "Widgets/Components/FrontendCommonButtonBase.h"
 #include "CommonTextBlock.h"
+#include "Subsystems/FrontendUISubsystem.h"
 
 void UFrontendCommonButtonBase::SetButtonText(FText InText)
 {
@@ -25,3 +26,30 @@ void UFrontendCommonButtonBase::NativePreConstruct()
     SetButtonText(ButtonDisplayText);
 }
 
+
+void UFrontendCommonButtonBase::NativeOnCurrentTextStyleChanged() // 버튼 텍스트 스타일 변경 시 호출되는 함수
+{
+    Super::NativeOnCurrentTextStyleChanged(); // 부모 클래스의 스타일 변경 처리 실행
+
+    if (CommonTextBlock_ButtonText && GetCurrentTextStyleClass()) // 버튼 텍스트 블록이 존재하면
+    {
+        CommonTextBlock_ButtonText->SetStyle(GetCurrentTextStyleClass()); // 현재 버튼 스타일을 텍스트 블록에 적용
+    }
+}
+
+void UFrontendCommonButtonBase::NativeOnHovered()
+{
+    Super::NativeOnHovered();
+
+    if (!ButtonDescriptionText.IsEmpty())
+    {
+        UFrontendUISubsystem::Get(this)->OnButtonDescriptionTextUpdated.Broadcast(this, ButtonDescriptionText);
+    }
+}
+
+void UFrontendCommonButtonBase::NativeOnUnhovered()
+{
+    Super::NativeOnUnhovered();
+
+    UFrontendUISubsystem::Get(this)->OnButtonDescriptionTextUpdated.Broadcast(this, FText::GetEmpty());
+}
