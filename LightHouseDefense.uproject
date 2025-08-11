@@ -12,7 +12,9 @@
 				"Core",
 				"CoreUObject",
 				"AIModule",
-				"Engine"
+				"Engine",
+				"CommonUI",
+				"DeveloperSettings"
 			]
 		}
 	],
@@ -26,6 +28,14 @@
 		},
 		{
 			"Name": "Water",
+			"Enabled": true
+		},
+		{
+			"Name": "CommonUI",
+			"Enabled": true
+		},
+		{
+			"Name": "SunPosition",
 			"Enabled": true
 		}
 	]
