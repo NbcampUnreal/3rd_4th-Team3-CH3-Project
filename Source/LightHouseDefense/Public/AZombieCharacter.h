@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GenericTeamAgentInterface.h"
 #include "AZombieCharacter.generated.h"
 
 UCLASS()
-class LIGHTHOUSEDEFENSE_API AAZombieCharacter : public ACharacter 
+class LIGHTHOUSEDEFENSE_API AAZombieCharacter : public ACharacter, public IGenericTeamAgentInterface // <-- 여기에 public IGenericTeamAgentInterface를 추가해야 합니다.
 {
 	GENERATED_BODY()
 
@@ -26,11 +27,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+    virtual FGenericTeamId GetGenericTeamId() const override;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
     class USkeletalMeshComponent* ZombieMesh;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
     TSubclassOf<class AAIController> ZombieAIControllerClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+    FGenericTeamId TeamID;
 
 private:
     

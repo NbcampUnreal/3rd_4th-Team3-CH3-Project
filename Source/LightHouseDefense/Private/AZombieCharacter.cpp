@@ -4,6 +4,7 @@
 #include "AZombieCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Perception/AIPerceptionTypes.h"
 #include "AIController.h"
 
 // Sets default values
@@ -34,7 +35,12 @@ AAZombieCharacter::AAZombieCharacter()
     AIControllerClass = AAIController::StaticClass();//기본 AIController 클래스를 사용
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned; // 월드에 배치되거나 스폰될때 AI가 제어
 
+    TeamID = FGenericTeamId(1);
+}
 
+FGenericTeamId AAZombieCharacter::GetGenericTeamId() const
+{
+    return TeamID;
 }
 
 // Called when the game starts or when spawned
