@@ -40,8 +40,8 @@ void AAITurretPawn::BeginPlay()
     {
         SpawnDefaultController();
     }
-    DisableTurret();//테스트용 비활성화 
-    //InstallTurret();//테스트용 일단 활성화
+    //DisableTurret();//테스트용 비활성화 
+    InstallTurret();//테스트용 일단 활성화
 }
 
 void AAITurretPawn::Tick(float DeltaTime)
