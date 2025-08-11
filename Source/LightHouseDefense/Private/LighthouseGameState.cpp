@@ -56,3 +56,14 @@ int32 ALighthouseGameState::GetRemainingTime() const
 {
     return RemainingTime;
 }
+
+// 카운트다운을 일시정지
+void ALighthouseGameState::PauseCountdown()
+{
+    GetWorldTimerManager().PauseTimer(CountdownTimerHandle);
+}
+// 카운트다운을 재개
+void ALighthouseGameState::ResumeCountdown()
+{
+    GetWorldTimerManager().UnPauseTimer(CountdownTimerHandle);
+}

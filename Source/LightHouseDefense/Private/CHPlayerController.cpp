@@ -2,6 +2,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "Blueprint/UserWidget.h"
 #include "InputAction.h"
 
 
@@ -12,7 +13,6 @@ void ACHPlayerController::OnRifleAction()
 void ACHPlayerController::OnShotgunAction()
 {
 }
-
 
 
 ACHPlayerController::ACHPlayerController()
@@ -39,6 +39,15 @@ void ACHPlayerController::BeginPlay()
             {
                 SubSystem->AddMappingContext(InputMappingContext, 0);
             }
+        }
+    }
+    // HUD 위젯 생성 및 표시
+    if (HUDWidgetClass)
+    {
+        UUserWidget* HUDWidget = CreateWidget<UUserWidget>(this, HUDWidgetClass);
+        if (HUDWidget)
+        {
+            HUDWidget->AddToViewport();
         }
     }
 }
