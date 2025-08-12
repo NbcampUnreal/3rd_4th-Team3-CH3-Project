@@ -6,14 +6,25 @@
 #include "InputAction.h"
 
 
-void ACHPlayerController::OnRifleAction()
+void ACHPlayerController::OnAssasultRifleAction()
+{
+}
+
+void ACHPlayerController::OnAssasultRifle2Action()
+{
+}
+
+void ACHPlayerController::OnPistolAction()
+{
+}
+
+void ACHPlayerController::OnSinperRifleAction()
 {
 }
 
 void ACHPlayerController::OnShotgunAction()
 {
 }
-
 
 ACHPlayerController::ACHPlayerController()
     :InputMappingContext(nullptr),
@@ -58,7 +69,10 @@ void ACHPlayerController::SetupInputComponent()
 
     if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
     {
-        EnhancedInput->BindAction(IA_RifleAction, ETriggerEvent::Started, this, &ACHPlayerController::OnRifleAction);
+        EnhancedInput->BindAction(IA_AssasultRifleAction, ETriggerEvent::Started, this, &ACHPlayerController::OnAssasultRifleAction);
+        EnhancedInput->BindAction(IA_AssasultRifle2Action, ETriggerEvent::Started, this, &ACHPlayerController::OnAssasultRifle2Action);
+        EnhancedInput->BindAction(IA_PistolAction, ETriggerEvent::Started, this, &ACHPlayerController::OnPistolAction);
+        EnhancedInput->BindAction(IA_SinperRifleAction, ETriggerEvent::Started, this, &ACHPlayerController::OnSinperRifleAction);
         EnhancedInput->BindAction(IA_ShotgunAction, ETriggerEvent::Started, this, &ACHPlayerController::OnShotgunAction);
     }
 }
