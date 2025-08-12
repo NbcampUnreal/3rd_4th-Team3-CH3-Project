@@ -25,30 +25,27 @@ void APistol::Fire()
     FVector Start;
     FRotator Rotation;
 
-    // 컨트롤러로부터 위치와 방향을 얻음
     APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-    if (PlayerController)
+    if (!PlayerController) return;
+
+    PlayerController->GetPlayerViewPoint(Start, Rotation);
+
+    const FVector End = Start + Rotation.Vector() * Range;
+
+    FHitResult Hit;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+
+    const bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+
+    if (bHit)
     {
-        PlayerController->GetPlayerViewPoint(Start, Rotation);
-
-        FVector End = Start + Rotation.Vector() * Range;
-
-        FHitResult Hit;
-        FCollisionQueryParams Params;
-        Params.AddIgnoredActor(this);
-
-        bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
-
-        if (bHit)
-        {
-            // 데미지 적용
-            UGameplayStatics::ApplyPointDamage(Hit.GetActor(), Damage, Rotation.Vector(), Hit, nullptr, this, nullptr);
-
-            // 디버그 히트 위치 표시
-            DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 10, FColor::Red, false, 1.0f);
-        }
-
-        // 발사 이펙트 
-        PlayFireEffect();
+        UGameplayStatics::ApplyPointDamage(Hit.GetActor(), Damage, Rotation.Vector(), Hit, nullptr, this, nullptr);
+        DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 10.f, FColor::Red, false, 1.0f);
     }
+
+    // 부모에 선언된 BP 이벤트 호출(총구화염/사운드 등)
+    PlayFireEffect();
 }
+
+

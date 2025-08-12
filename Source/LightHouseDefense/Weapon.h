@@ -9,28 +9,33 @@
 UCLASS()
 class LIGHTHOUSEDEFENSE_API AWeapon : public AActor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    AWeapon();
+	AWeapon();
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	virtual void Fire();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
+	void PlayFireEffect();
 
 protected:
-    virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
-public:
-    virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TSubclassOf<class AWeaponProjectile> ProjectileClass; // 발사할 총알 클래스
 
-    // 발사 함수 (자식에서 호출)
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    virtual void Fire();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float Damage = 25.0f;
 
-    UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
-    void PlayFireEffect();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float Range = 1000.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    float Damage = 25.0f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-    float Range = 1000.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float FireRate = 1.0f;  // 초당 발사 빈도
 };
+
+
 

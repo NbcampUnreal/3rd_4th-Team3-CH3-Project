@@ -5,8 +5,14 @@
 
 AM16::AM16()
 {
-    Damage = 20.0f;     // M16은 빠른 연사 대신 낮은 데미지
-    Range = 1300.0f;    // 사거리는 더 길게 설정 가능
+    // 기본 총기 특성 설정
+    Damage = 20.0f;  // M16은 AK47보다 적은 피해
+    Range = 1000.0f;  // M16의 발사 거리
+    FireRate = 0.2f;  // M16은 AK47보다 느린 발사 속도
 }
 
+void AM16::BeginPlay()
+{
+    Super::BeginPlay();
+}
 
