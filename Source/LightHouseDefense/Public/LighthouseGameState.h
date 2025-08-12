@@ -15,8 +15,10 @@ public:
     void StartCountdown();
 
     // ⬇⬇ 추가 (게임 일시정지/재개용)
-    UFUNCTION(BlueprintCallable) void PauseCountdown();
-    UFUNCTION(BlueprintCallable) void ResumeCountdown();
+    UFUNCTION(BlueprintCallable)
+    void PauseCountdown();
+    UFUNCTION(BlueprintCallable)
+    void ResumeCountdown();
 
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeUpdated, int32, RemainingTime);
 

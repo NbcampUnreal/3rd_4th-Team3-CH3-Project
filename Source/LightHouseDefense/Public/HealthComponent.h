@@ -33,33 +33,42 @@ public:
     //체력과 팀 초기화
     // - InMaxHealth: 최대 체력
     // - InTeam: 소속 팀 (Player, Zombie, Neutral 등)
-    UFUNCTION(BlueprintCallable) void Initialize(float InMaxHealth, ETeam InTeam);
+    UFUNCTION(BlueprintCallable)
+    void Initialize(float InMaxHealth, ETeam InTeam);
 
     // 현재 체력 반환
-    UFUNCTION(BlueprintCallable) float GetHealth() const { return CurrentHealth; }
+    UFUNCTION(BlueprintCallable)
+    float GetHealth() const { return CurrentHealth; }
 
     //최대체력 반환
-    UFUNCTION(BlueprintCallable) float GetMaxHealth() const { return MaxHealth; }
+    UFUNCTION(BlueprintCallable)
+    float GetMaxHealth() const { return MaxHealth; }
 
     // 사망여부 확인(체력이 0 이하인지)
-    UFUNCTION(BlueprintCallable) bool  IsDead()   const { return CurrentHealth <= 0.f; }
+    UFUNCTION(BlueprintCallable)
+    bool IsDead() const { return CurrentHealth <= 0.f; }
 
     // 체력 회복
-    UFUNCTION(BlueprintCallable) void  Heal(float Amount);
+    UFUNCTION(BlueprintCallable)
+    void  Heal(float Amount);
 
     // 시망시 소유 엑터 제거 여부
     // 좀비 : true (죽으면 제거)
     // 플레이어 : false (죽어도 pawn 제거 안함 , UI 리셋처리)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health") bool  bDestroyOwnerOnDeath = false;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+    bool  bDestroyOwnerOnDeath = false;
 
     // 소속 팀
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health") ETeam Team = ETeam::Neutral;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+    ETeam Team = ETeam::Neutral;
 
     // 체력 변경시 브로드캐스트 되는 델리게이트 (UI 갱신 등)
-    UPROPERTY(BlueprintAssignable) FOnHealthChanged OnHealthChanged;
+    UPROPERTY(BlueprintAssignable)
+    FOnHealthChanged OnHealthChanged;
 
     // 사망시 브로드캐스트 되는 델리게이트( subsystem , GameMode , gamestate 등에서 처리)
-    UPROPERTY(BlueprintAssignable) FOnDied         OnDied;
+    UPROPERTY(BlueprintAssignable)
+    FOnDied OnDied;
 
 protected:
     // 컴포넌트가 생성될 때 호출 (UE Damage 시스템과 연동)
@@ -68,7 +77,8 @@ protected:
 private:
 
     // UE Damage 시스템에서 호출되는 함수
-    UFUNCTION() void HandleAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType,
+    UFUNCTION()
+    void HandleAnyDamage(AActor* DamagedActor,float Damage, const class UDamageType* DamageType,
         class AController* Instigator, AActor* DamageCauser);
 
     // 내부 데미지 적용 처리 (체력감소, 사망판정, 파괴여부  )
@@ -77,8 +87,10 @@ private:
 private:
 
     // 최대체력 (에디터에서 조정 가능, 최소 1이상)
-    UPROPERTY(EditAnywhere, Category = "Health", meta = (ClampMin = 1)) float MaxHealth = 100.f;
+    UPROPERTY(EditAnywhere, Category = "Health", meta = (ClampMin = 1))
+    float MaxHealth = 100.f;
 
     // 현재 체력 (런타임에만 표시)
-    UPROPERTY(VisibleInstanceOnly, Category = "Health")              float CurrentHealth = 0.f;
+    UPROPERTY(VisibleInstanceOnly, Category = "Health")
+    float CurrentHealth = 0.f;
 };

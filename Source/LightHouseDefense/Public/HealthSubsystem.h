@@ -27,20 +27,25 @@ public:
     void InitializeHealthForActor(AActor* Actor);
 
     // 플레이어시 기본 체력
-    UPROPERTY(EditAnywhere, Category = "Defaults") float DefaultPlayerHP = 100.f;
+    UPROPERTY(EditAnywhere, Category = "Defaults")
+    float DefaultPlayerHP = 100.f;
 
     // 좀비 기본 체력
-    UPROPERTY(EditAnywhere, Category = "Defaults") float DefaultZombieHP = 50.f;
+    UPROPERTY(EditAnywhere, Category = "Defaults")
+    float DefaultZombieHP = 50.f;
 
     // 좀비 사망 시 엑터 자동 제거 여부
     // true: 좀비 사망 시 Pawn 제거 (게임에서 사라짐)
     // false: 다른 처리여부 (리스폰 등)
-    UPROPERTY(EditAnywhere, Category = "Defaults") bool  bDestroyZombieOnDeath = true;
+    UPROPERTY(EditAnywhere, Category = "Defaults")
+    bool bDestroyZombieOnDeath = true;
 
 private:
     // 플레이어 사망 처리 함수 (ondied 델리게이트 연결용)
-    UFUNCTION() void HandlePlayerDied(AActor* Dead);
+    UFUNCTION()
+    void HandlePlayerDied(AActor* Dead);
 
     // 좀비 사망 처리 함수 (ondied 델리게이트 연결용)
-    UFUNCTION() void HandleZombieDied(AActor* Dead);
+    UFUNCTION()
+    void HandleZombieDied(AActor* Dead);
 };
