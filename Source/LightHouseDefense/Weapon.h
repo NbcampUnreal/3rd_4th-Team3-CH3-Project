@@ -13,12 +13,21 @@ class LIGHTHOUSEDEFENSE_API AWeapon : public AActor
 
 public:
 	AWeapon();
-
+    //발사
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void Fire();
 
+    // BP에서 총구 화염/사운드 구현용
 	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
 	void PlayFireEffect();
+
+    //장착/해제 API
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    virtual void Equip(class APawn* NewOwnerPawn, FName SocketName = "hand_r_socket"); // ★ 추가
+
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    virtual void Unequip(); 
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -35,6 +44,20 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FireRate = 1.0f;  // 초당 발사 빈도
+
+    //총구 위치용 머즐
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+    class USceneComponent* Muzzle = nullptr;
+
+    //탄창등 소켓 이름 캐시
+    UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Weapon")
+    FName EquippedSocketName = NAME_None;
+
+
+
+
+
+
 };
 
 
