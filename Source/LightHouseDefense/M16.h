@@ -13,4 +13,7 @@ class LIGHTHOUSEDEFENSE_API AM16 : public AWeapon
 
 public:
     AM16();
+
+protected:
+    virtual void BeginPlay() override;
 };

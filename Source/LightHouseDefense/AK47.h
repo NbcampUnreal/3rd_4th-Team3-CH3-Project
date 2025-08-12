@@ -13,5 +13,8 @@ class LIGHTHOUSEDEFENSE_API AAK47 : public AWeapon
 
 public:
     AAK47();
+
+protected:
+    virtual void BeginPlay() override;
 };
 

@@ -5,8 +5,13 @@
 
 AAK47::AAK47()
 {
-    Damage = 30.0f;     // AK47은 좀 더 쌘 데미지
-    Range = 1200.0f;    // 사거리도 약간 더 길게
+    // 기본 총기 특성 설정
+    Damage = 30.0f;  // AK47은 30의 피해
+    Range = 1200.0f;  // 더 긴 발사 거리
+    FireRate = 0.1f;  // 더 빠른 발사 속도
 }
 
-
+void AAK47::BeginPlay()
+{
+    Super::BeginPlay();
+}
