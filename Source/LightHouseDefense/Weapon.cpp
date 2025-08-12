@@ -108,5 +108,14 @@ void AWeapon::Fire()
     PlayFireEffect();
 }
 
+void AWeapon::Unequip()
+{
+    DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+    SetOwner(nullptr);
+    SetInstigator(nullptr);
+    SetActorHiddenInGame(true);
+    SetActorEnableCollision(false);
+}
+
 
 
