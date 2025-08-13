@@ -5,6 +5,9 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AIPerceptionTypes.h"
+#include "Kismet/GameplayStatics.h"
+#include "HealthComponent.h"
+#include "HealthSubsystem.h"
 #include "AIController.h"
 
 // Sets default values
@@ -36,6 +39,8 @@ AAZombieCharacter::AAZombieCharacter()
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned; // 월드에 배치되거나 스폰될때 AI가 제어
 
     TeamID = FGenericTeamId(1);
+
+    HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 }
 
 FGenericTeamId AAZombieCharacter::GetGenericTeamId() const
@@ -48,7 +53,10 @@ void AAZombieCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-
+    if (HealthComp)
+    {
+        HealthComp->Initialize(DefaultMaxHealth, ETeam::Zombie);
+    }
 	
 }
 
@@ -65,3 +73,11 @@ void AAZombieCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
+
+float AAZombieCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+    UE_LOG(LogTemp, Warning, TEXT("take damage"));
+    return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+  
+}
+
