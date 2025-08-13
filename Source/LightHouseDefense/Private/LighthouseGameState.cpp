@@ -8,21 +8,6 @@ void ALighthouseGameState::BeginPlay()
 {
     Super::BeginPlay();
     StartCountdown();
-
-    // 첫 번째 플레이어 컨트롤러를 가져옴 (싱글플레이어 기준)
-    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-    if (PC)
-    {
-        // 해당 컨트롤러에서 HUD를 가져와서 커스텀 HUD 타입으로 캐스팅
-        ALighthouseHUD* LH_HUD = Cast<ALighthouseHUD>(PC->GetHUD());
-        if (LH_HUD)
-        {
-            // HUD에 타이머 업데이트 함수 바인딩
-           // OnTimeUpdated가 호출될 때마다 HUD의 UpdateTimerText 함수가 실행됨
-            OnTimeUpdated.AddDynamic(LH_HUD, &ALighthouseHUD::UpdateTimerText);
-
-        }
-    }
 }
 
 // 카운트다운을 시작
