@@ -49,16 +49,17 @@ protected:
     // 지금 장착 무기
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
     AWeapon* CurrentWeapon;
+
     UPROPERTY(EditDefaultsOnly, Category = "Weapon")
     TSubclassOf<class AWeapon> DefaultWeaponClass;
 
-    // AssasultRifle 무기 클래스
+    // AK47 무기 클래스
     UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-    TSubclassOf<class AWeapon> AssasultRifleClass;
+    TSubclassOf<class AWeapon> AK47Class;
 
-    // AssasultRifle2 무기 클래스
+    // M16 무기 클래스
     UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-    TSubclassOf<class AWeapon> AssasultRifle2Class;
+    TSubclassOf<class AWeapon> M16Class;
 
     // 샷건 무기 클래스
     UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -73,8 +74,8 @@ protected:
     TSubclassOf<class AWeapon> SniperRifleClass;
 
     // 무기 교체 함수들
-    void SwitchToAssasultRifle();
-    void SwitchToAssasultRifle2();
+    void SwitchToAK47();
+    void SwitchToM16();
     void SwitchToPistol();
     void SwitchToShotGun();
     void SwitchToSniperRifle();
@@ -126,10 +127,10 @@ protected:
     // 애니메이션 몽타주
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    UAnimMontage* AssasultRifleReloadMontage; // AssasultRifle 재장전
+    UAnimMontage* AK47ReloadMontage; // AK47 재장전
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    UAnimMontage* AssasultRifle2ReloadMontage; // AssasultRifle2 재장전
+    UAnimMontage* M16ReloadMontage; // M16 재장전
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
     UAnimMontage* PistolReloadMontage; // Pistol 재장전
@@ -141,16 +142,16 @@ protected:
     UAnimMontage* ShotGunReloadMontage; // Shotgun 재장전
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    UAnimMontage* AssasultRifleFireHipMontage; // AssasultRifle 발사
+    UAnimMontage* AK47FireHipMontage; // AK47 발사
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    UAnimMontage* AssasultRifleFireIronsightsMontage; // AssasultRifle 조준 발사
+    UAnimMontage* AK47FireIronsightsMontage; // AK47 조준 발사
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    UAnimMontage* AssasultRifle2FireHipMontage; // AssasultRifle2 발사
+    UAnimMontage* M16FireHipMontage; // M16 발사
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    UAnimMontage* AssasultRifle2FireIronsightsMontage; // AssasultRifle2 조준 발사
+    UAnimMontage* M16FireIronsightsMontage; // M16 조준 발사
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
     UAnimMontage* PistolFireHipMontage; // Pistol 발사

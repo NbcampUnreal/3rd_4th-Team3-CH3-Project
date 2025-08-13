@@ -30,9 +30,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
     UInputAction* CrouchAction;
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
-    UInputAction* AssasultRifleAction;
+    UInputAction* AK47Action;
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
-    UInputAction* AssasultRifle2Action;
+    UInputAction* M16Action;
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
     UInputAction* PistolAction;
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
@@ -40,9 +40,9 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
     UInputAction* ShotgunAction;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-    class UInputAction* IA_AssasultRifleAction;
+    class UInputAction* IA_AK47Action;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-    class UInputAction* IA_AssasultRifle2Action;
+    class UInputAction* IA_M16Action;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
     class UInputAction* IA_PistolAction;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -65,8 +65,8 @@ public:
 
     virtual void SetupInputComponent() override;
 
-    void OnAssasultRifleAction();
-    void OnAssasultRifle2Action();
+    void OnAK47Action();
+    void OnM16Action();
     void OnPistolAction();
     void OnSinperRifleAction();
     void OnShotgunAction();

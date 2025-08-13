@@ -6,11 +6,11 @@
 #include "InputAction.h"
 
 
-void ACHPlayerController::OnAssasultRifleAction()
+void ACHPlayerController::OnAK47Action()
 {
 }
 
-void ACHPlayerController::OnAssasultRifle2Action()
+void ACHPlayerController::OnM16Action()
 {
 }
 
@@ -69,8 +69,8 @@ void ACHPlayerController::SetupInputComponent()
 
     if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
     {
-        EnhancedInput->BindAction(IA_AssasultRifleAction, ETriggerEvent::Started, this, &ACHPlayerController::OnAssasultRifleAction);
-        EnhancedInput->BindAction(IA_AssasultRifle2Action, ETriggerEvent::Started, this, &ACHPlayerController::OnAssasultRifle2Action);
+        EnhancedInput->BindAction(IA_AK47Action, ETriggerEvent::Started, this, &ACHPlayerController::OnAK47Action);
+        EnhancedInput->BindAction(IA_M16Action, ETriggerEvent::Started, this, &ACHPlayerController::OnM16Action);
         EnhancedInput->BindAction(IA_PistolAction, ETriggerEvent::Started, this, &ACHPlayerController::OnPistolAction);
         EnhancedInput->BindAction(IA_SinperRifleAction, ETriggerEvent::Started, this, &ACHPlayerController::OnSinperRifleAction);
         EnhancedInput->BindAction(IA_ShotgunAction, ETriggerEvent::Started, this, &ACHPlayerController::OnShotgunAction);

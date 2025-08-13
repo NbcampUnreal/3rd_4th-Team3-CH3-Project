@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 #include "E_WeaponType.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimMontage.h"
 #include "Animation/AnimInstance.h"
 #include "HealthComponent.h"      // HealthComp 생성/사용
@@ -17,7 +18,7 @@ ACHCharacter::ACHCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    CurrentWeaponType = E_WeaponType::AssasultRifle;
+    CurrentWeaponType = E_WeaponType::AK47;
     CurrentWeapon = nullptr;
 
     // 스프링암 설정
@@ -62,6 +63,8 @@ void ACHCharacter::BeginPlay()
     {
         DefaultFOV = CameraComp->FieldOfView;
     }
+
+
 
     // HealthSubsystem을 통해 초기 HP/팀 세팅 (편의상 Subsystem이 기본값을 관리)
     if (UGameInstance* GI = GetGameInstance())
@@ -145,13 +148,13 @@ void ACHCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
             }
 
             // 무기
-            if (PlayerController->AssasultRifleAction)
+            if (PlayerController->AK47Action)
             {
-                EnhancedInput->BindAction(PlayerController->AssasultRifleAction, ETriggerEvent::Triggered, this, &ACHCharacter::SwitchToAssasultRifle);
+                EnhancedInput->BindAction(PlayerController->AK47Action, ETriggerEvent::Triggered, this, &ACHCharacter::SwitchToAK47);
             }
-            if (PlayerController->AssasultRifle2Action)
+            if (PlayerController->M16Action)
             {
-                EnhancedInput->BindAction(PlayerController->AssasultRifle2Action, ETriggerEvent::Triggered, this, &ACHCharacter::SwitchToAssasultRifle2);
+                EnhancedInput->BindAction(PlayerController->M16Action, ETriggerEvent::Triggered, this, &ACHCharacter::SwitchToM16);
             }
             if (PlayerController->PistolAction)
             {
@@ -293,22 +296,22 @@ void ACHCharacter::StopCrouch(const FInputActionValue& value)
     }
 }
 
-void ACHCharacter::SwitchToAssasultRifle()
+void ACHCharacter::SwitchToAK47()
 {
-    if (AssasultRifleClass)
+    if (AK47Class)
     {
         if (CurrentWeapon) CurrentWeapon->Destroy();
-        AWeapon* NewWeapon = GetWorld()->SpawnActor<AWeapon>(AssasultRifleClass);
+        AWeapon* NewWeapon = GetWorld()->SpawnActor<AWeapon>(AK47Class);
         EquipWeapon(NewWeapon);
     }
 }
 
-void ACHCharacter::SwitchToAssasultRifle2()
+void ACHCharacter::SwitchToM16()
 {
-    if (AssasultRifle2Class)
+    if (M16Class)
     {
         if (CurrentWeapon) CurrentWeapon->Destroy();
-        AWeapon* NewWeapon = GetWorld()->SpawnActor<AWeapon>(AssasultRifle2Class);
+        AWeapon* NewWeapon = GetWorld()->SpawnActor<AWeapon>(M16Class);
         EquipWeapon(NewWeapon);
     }
 }
