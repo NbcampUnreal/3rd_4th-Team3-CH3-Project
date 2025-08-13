@@ -89,6 +89,7 @@ protected:
     void StartAiming();
     void StopAiming();
 
+    UFUNCTION()
     void HandleSelfDied(AActor* DeadActor);
 
     // 조준
