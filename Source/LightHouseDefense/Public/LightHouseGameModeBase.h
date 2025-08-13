@@ -18,4 +18,10 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void StopRun();
+
+private:
+    // StopRun 중복 실행 방지 (PIE/새 게임 시작마다 리셋됨)
+    UPROPERTY(VisibleInstanceOnly, Category = "Run State")
+    bool bRunStopped = false;
 };
+

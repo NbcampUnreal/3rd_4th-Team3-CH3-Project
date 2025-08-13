@@ -2,6 +2,11 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Components/ProgressBar.h"         // ProgressBar 접근
+#include "Kismet/GameplayStatics.h"         // GetPlayerPawn
+#include "GameFramework/PlayerController.h" // GetOwningPlayerController
+#include "HealthComponent.h"                // UHealthComponent
+#include "LighthouseGameState.h"
 
 // 게임 시작 시 HUD 초기화
 void ALighthouseHUD::BeginPlay()
@@ -30,6 +35,13 @@ void ALighthouseHUD::BeginPlay()
             // 좀비 카운트 텍스트 블록이 없으면 경고 출력
             if (!ZombieCountTextBlock)
                 UE_LOG(LogTemp, Warning, TEXT("ZombieCountTextBlock not found! Check widget hierarchy and name."));
+
+            // 플레이어 HP 위젯 찾기 (위젯 이름 정확히: PlayerHP )
+            PlayerHP_ProgressBar = Cast<UProgressBar>(GameHUDWidget->GetWidgetFromName(TEXT("PlayerHP")));
+            if (!PlayerHP_ProgressBar)
+                UE_LOG(LogTemp, Warning, TEXT("PlayerHP not found! (WBP_GameHUD)"));
+
+
         }
         else
         {
@@ -41,6 +53,45 @@ void ALighthouseHUD::BeginPlay()
     {
         // GameHUDWidgetClass 자체가 에디터에서 지정되지 않은 경우
         UE_LOG(LogTemp, Warning, TEXT("GameHUDWidgetClass is not assigned in HUD."));
+    }
+
+    // 로컬 플레이어 Pawn의 HealthComponent 찾아서 델리게이트 바인딩
+    APawn* PlayerPawn =
+        (GetOwningPlayerController() && GetOwningPlayerController()->GetPawn())
+        ? GetOwningPlayerController()->GetPawn()
+        : UGameplayStatics::GetPlayerPawn(this, 0);
+
+    if (PlayerPawn)
+    {
+        if (UHealthComponent* HC = PlayerPawn->FindComponentByClass<UHealthComponent>())
+        {
+            // 초기값 1회 즉시 반영
+            HandlePlayerHPChanged(HC->GetHealth(), HC->GetMaxHealth());
+
+            // 체력 변경 시마다 호출되도록 바인딩
+            HC->OnHealthChanged.AddDynamic(this, &ALighthouseHUD::HandlePlayerHPChanged);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Player Pawn has no HealthComponent."));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("PlayerPawn not found on BeginPlay."));
+    }
+
+          // HUD가 직접 GameState 델리게이트에 바인딩 (타이밍 문제 해결)
+    if (ALighthouseGameState* GS = GetWorld()->GetGameState<ALighthouseGameState>())
+    {
+        GS->OnTimeUpdated.AddDynamic(this, &ALighthouseHUD::UpdateTimerText);
+        // 시작 시 1회 초기 반영
+        UpdateTimerText(GS->GetRemainingTime());
+        UE_LOG(LogTemp, Log, TEXT("[HUD] Bound to OnTimeUpdated on GameState"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[HUD] GameState not found; timer binding skipped"));
     }
 }
 
@@ -71,4 +122,16 @@ void ALighthouseHUD::UpdateZombieCount(int32 RemainingZombies)
         // UI 텍스트 변경
         ZombieCountTextBlock->SetText(FText::FromString(CountStr));
     }
+}
+
+void ALighthouseHUD::HandlePlayerHPChanged(float NewHP, float MaxHP)
+{
+    // 게이지
+    if (PlayerHP_ProgressBar)
+    {
+        const float Pct = (MaxHP > 0.f) ? (NewHP / MaxHP) : 0.f;
+        PlayerHP_ProgressBar->SetPercent(Pct);
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("[HUD] HP changed: %.0f / %.0f"), NewHP, MaxHP);
 }
