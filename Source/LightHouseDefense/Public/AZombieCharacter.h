@@ -7,6 +7,8 @@
 #include "GenericTeamAgentInterface.h"
 #include "AZombieCharacter.generated.h"
 
+class UHealthComponent;
+
 UCLASS()
 class LIGHTHOUSEDEFENSE_API AAZombieCharacter : public ACharacter, public IGenericTeamAgentInterface // <-- 여기에 public IGenericTeamAgentInterface를 추가해야 합니다.
 {
@@ -38,6 +40,19 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     FGenericTeamId TeamID;
 
+
+    virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+protected:
+    //임시 추가
+    //공통hp (hp바 안씀)
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
+    UHealthComponent* HealthComp = nullptr;
+
+    //각 클래스(일반/특수)좀비에서 원하는 기본 MAXHP 세팅가능
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health", meta = (ClampMin = "1"))
+    float DefaultMaxHealth = 100.f; //일반좀비 기본값100
+    //임시추가 여기까지
+  
 private:
     
 };

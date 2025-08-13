@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "TurretState.h" // 위에 정의한 Enum 헤더 파일을 포함합니다.
+#include "HealthComponent.h"
+#include "HealthSubsystem.h"
 #include "AITurretPawn.generated.h"
 
 class UStaticMeshComponent;
@@ -51,6 +53,8 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     float FireRange = 2000.f;
 
+
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     UBehaviorTree* BehaviorTreeAsset;
 
@@ -83,9 +87,11 @@ public:
 
     // 발사 타이머 핸들
     FTimerHandle FireTimerHandle;
-
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float TurretDamage = 20.0f; // 기본 데미지 양
 
 protected:
     // 스캔 회전 로직에 사용되는 변수
     float CurrentYawRotation = 0.0f;
+
 };
