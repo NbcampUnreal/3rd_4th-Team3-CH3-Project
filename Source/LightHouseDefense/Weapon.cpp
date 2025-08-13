@@ -9,11 +9,18 @@
 #include "GameFramework/Pawn.h" //Instigator
 #include "Components/SkeletalMeshComponent.h" //소켓 부착
 #include "Engine/World.h"
+#include "TimerManager.h"
 
 
 AWeapon::AWeapon()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    if (!GetRootComponent())
+    {
+        USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+        SetRootComponent(Root);
+    }
 
     //머즐 컴포넌트 생성
     Muzzle = CreateDefaultSubobject< USceneComponent>(TEXT("Muzzle"));
@@ -29,6 +36,8 @@ AWeapon::AWeapon()
 void AWeapon::BeginPlay()
 {
     Super::BeginPlay();
+
+    CurrentAmmo = FMath::Clamp(CurrentAmmo, 0, MagazineSize);
 }
 
 void AWeapon::Tick(float DeltaTime)
@@ -59,54 +68,97 @@ void AWeapon::Equip(APawn* NewOwnerPawn, FName SocketName)
     }
 
     SetActorEnableCollision(true);
-    SetActorHiddenInGame(true);
+    SetActorHiddenInGame(false);
+}
+
+
+void AWeapon::Reload() // ★ 수동 재장전
+{
+    if (bIsReloading)              return;
+    if (ReserveAmmo <= 0)          return;
+    if (CurrentAmmo >= MagazineSize) return;
+
+    bIsReloading = true;
+    OnReloadStarted(); //  BP 애니/사운드 훅
+
+    GetWorldTimerManager().SetTimer(TH_Reload, this, &AWeapon::FinishReload, ReloadTime, false);
+}
+
+void AWeapon::FinishReload() //  재장전 완료 콜백
+{
+    bIsReloading = false;
+
+    const int32 Need = MagazineSize - CurrentAmmo;
+    const int32 ToLoad = FMath::Min(Need, ReserveAmmo);
+
+    CurrentAmmo += ToLoad;
+    ReserveAmmo -= ToLoad;
+
+    OnReloadFinished(); //  BP 애니/사운드 훅
+}
+
+void AWeapon::StartFireCooldown() //  발사 쿨다운
+{
+    bCanFire = false;
+    const float Interval = (FireRate > 0.f) ? (1.f / FireRate) : 0.1f;
+    GetWorldTimerManager().SetTimer(TH_FireCooldown, [this]()
+        {
+            bCanFire = true;
+        }, Interval, false);
 }
 
 void AWeapon::Fire()
 {
-    FVector CamLoc;
-    FRotator CamRot;
-
-    // 1인칭 카메라 기준 
-    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-    if (!PC) return;
-
-    // 플레이어 카메라 기준 발사
-    PC->GetPlayerViewPoint(CamLoc, CamRot);
-
-    const FVector SpawnLoc = (Muzzle ? Muzzle->GetComponentLocation() : CamLoc); // ✔ 세미콜론
-    const FRotator SpawnRot = CamRot;
-
-    if (ProjectileClass)
+    if (!bCanFire || bIsReloading) return;
+    if (CurrentAmmo <= 0)
     {
-        // 스폰 파라미터 설정 Owner,Instigator 충돌 처리
-        FActorSpawnParameters Params;
-        Params.Owner = this;                // 피해소유자
-        Params.Instigator = GetInstigator();// 가해자(컨트롤된 Pawn)
-        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-        // 스폰
-        AWeaponProjectile* Projectile =
-            GetWorld()->SpawnActor<AWeaponProjectile>(ProjectileClass, CamLoc, CamRot, Params);
-
-        if (Projectile)
-        {
-            const FVector FireDir = SpawnRot.Vector();
-
-           
-            if (Projectile->ProjectileMovement)
-            {
-                Projectile->ProjectileMovement->Velocity = FireDir * 3000.f;
-            }
-
-            //무기 데미지를 탄환으로 전달 projectille에 데미지 가 있으면
-            Projectile->Damage = Damage;
-        }
+        if (ReserveAmmo > 0) Reload();
+        return;
     }
 
-    // 총구 화염/ 사운드 (bp에서 구현)
+    FVector CamLoc;
+    FRotator CamRot;
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+    {
+        PC->GetPlayerViewPoint(CamLoc, CamRot);
+    }
+
+    const float TraceDist = 20000.f;
+    const FVector TraceEnd = CamLoc + CamRot.Vector() * TraceDist;
+
+    // 라인트레이스 파라미터
+    FHitResult Hit;
+    FCollisionQueryParams QP(SCENE_QUERY_STAT(WeaponFireTrace), true);
+    QP.AddIgnoredActor(this);
+    if (GetOwner()) QP.AddIgnoredActor(GetOwner());
+
+    // 라인트레이스 실행
+    if (GetWorld()->LineTraceSingleByChannel(Hit, CamLoc, TraceEnd, ECC_Visibility, QP))
+    {
+        // 맞은 액터에 데미지 적용
+        UGameplayStatics::ApplyPointDamage(
+            Hit.GetActor(),
+            Damage,
+            CamRot.Vector(),
+            Hit,
+            GetInstigatorController(),
+            this,
+            nullptr
+        );
+
+        // 디버그용 라인
+        DrawDebugLine(GetWorld(), CamLoc, Hit.ImpactPoint, FColor::Red, false, 1.0f, 0, 1.0f);
+    }
+    else
+    {
+        DrawDebugLine(GetWorld(), CamLoc, TraceEnd, FColor::Blue, false, 1.0f, 0, 1.0f);
+    }
+
     PlayFireEffect();
+    CurrentAmmo = FMath::Max(0, CurrentAmmo - 1);
+    StartFireCooldown();
 }
+
 
 void AWeapon::Unequip()
 {

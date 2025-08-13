@@ -38,6 +38,7 @@ void UBT_ScanForTargets::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
         return;
     }
 
+
     // 블랙보드에 목표물이 설정되면 태스크 성공으로 종료
     if (BlackboardComp->GetValueAsObject(TargetActorKey.SelectedKeyName) != nullptr)
     {
