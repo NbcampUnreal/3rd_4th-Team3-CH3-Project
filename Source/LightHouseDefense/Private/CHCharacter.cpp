@@ -9,6 +9,9 @@
 #include "E_WeaponType.h"
 #include "Animation/AnimMontage.h"
 #include "Animation/AnimInstance.h"
+#include "HealthComponent.h"      // HealthComp 생성/사용
+#include "HealthSubsystem.h"      // 초기 HP 세팅 호출
+#include "Engine/GameInstance.h"  // GetGameInstance()
 
 ACHCharacter::ACHCharacter()
 {
@@ -19,7 +22,7 @@ ACHCharacter::ACHCharacter()
 
     // 스프링암 설정
     SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-    SpringArmComp->SetupAttachment(GetMesh(), TEXT("Head"));
+    SpringArmComp->SetupAttachment(GetMesh(), FName("Head"));
     SpringArmComp->TargetArmLength = 0.f;
     SpringArmComp->bUsePawnControlRotation = true;
     SpringArmComp->bDoCollisionTest = false;
@@ -40,6 +43,11 @@ ACHCharacter::ACHCharacter()
     AimingFOV = 60.0f;
     ZoomInterpSpeed = 20.0f;
 
+    // ========================= [ADDED] =========================
+    // 플레이어에 HealthComponent를 "항상" 붙여둠 (BeginPlay에서 자동으로 AnyDamage에 바인딩됨)
+    HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+    // ===========================================================
+
     // 상태 변수 초기화
     bIsAiming = false;
     bIsSprinting = false;
@@ -55,6 +63,24 @@ void ACHCharacter::BeginPlay()
         DefaultFOV = CameraComp->FieldOfView;
     }
 
+    // HealthSubsystem을 통해 초기 HP/팀 세팅 (편의상 Subsystem이 기본값을 관리)
+    if (UGameInstance* GI = GetGameInstance())
+    {
+        if (UHealthSubsystem* HS = GI->GetSubsystem<UHealthSubsystem>())
+        {
+            HS->InitializeHealthForActor(this);
+            // 필요 시 여기서도 초기값을 직접 찍어볼 수 있음:
+            // UE_LOG(LogTemp, Log, TEXT("[CHCharacter] HealthComp ready: %.0f/%.0f"),
+            //     HealthComp ? HealthComp->GetHealth() : -1.f,
+            //     HealthComp ? HealthComp->GetMaxHealth() : -1.f);
+        }
+    }
+
+    // 사망 이벤트를 "캐릭터 자신"도 수신 → 즉시 이동/입력 차단
+    if (UHealthComponent* HC = FindComponentByClass<UHealthComponent>())
+    {
+        HC->OnDied.AddDynamic(this, &ACHCharacter::HandleSelfDied);
+    }
     if (DefaultWeaponClass)
     {
         AWeapon* SpawnedWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass);
@@ -325,4 +351,26 @@ void ACHCharacter::StartAiming()
 void ACHCharacter::StopAiming()
 {
     bIsAiming = false;
+}
+
+void ACHCharacter::HandleSelfDied(AActor* DeadActor)
+{
+    if (DeadActor != this) return;
+
+    // 이동 완전 정지
+    if (UCharacterMovementComponent* Move = GetCharacterMovement())
+    {
+        Move->StopMovementImmediately();
+        Move->DisableMovement();
+    }
+
+    // 입력 차단
+    if (APlayerController* PC = Cast<APlayerController>(GetController()))
+    {
+        DisableInput(PC);
+        PC->SetIgnoreMoveInput(true);
+        PC->SetIgnoreLookInput(true);
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("[Player] Died -> movement/input disabled"));
 }

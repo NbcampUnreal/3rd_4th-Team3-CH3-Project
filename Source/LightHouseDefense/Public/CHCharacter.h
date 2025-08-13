@@ -11,6 +11,8 @@ class USpringArmComponent;
 class UCameraComponent;
 struct FInputActionValue;
 class UAnimMontage;
+class UHealthComponent; // HealthComponent 전방 선언 (cpp에서 include)
+
 
 UCLASS()
 class LIGHTHOUSEDEFENSE_API ACHCharacter : public ACharacter
@@ -86,6 +88,8 @@ protected:
     // 조준 시작 / 정지
     void StartAiming();
     void StopAiming();
+
+    void HandleSelfDied(AActor* DeadActor);
 
     // 조준
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
@@ -165,4 +169,9 @@ protected:
     // 지금 무기 타입 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
     E_WeaponType CurrentWeaponType;
+
+private:
+        // 플레이어 HP 컴포넌트. 캐릭터에 항상 붙어 있게 생성자에서 만들어요.
+        UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
+        UHealthComponent* HealthComp = nullptr;   
 };
