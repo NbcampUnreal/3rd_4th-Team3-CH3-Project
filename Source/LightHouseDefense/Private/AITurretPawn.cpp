@@ -79,6 +79,10 @@ void AAITurretPawn::EnableTurret()
 
 void AAITurretPawn::Fire()
 {
+  if(CurrentState==ETurretState::Attacking)
+  {
+
+    
     FVector StartLocation = MuzzleLocation->GetComponentLocation();
     FVector ForwardVector = MuzzleLocation->GetForwardVector();
     FVector EndLocation = StartLocation + (ForwardVector * FireRange);
@@ -113,6 +117,7 @@ void AAITurretPawn::Fire()
             DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Green, false, 10.0f);
         }
     }
+  }
 }
 
 void AAITurretPawn::InstallTurret()

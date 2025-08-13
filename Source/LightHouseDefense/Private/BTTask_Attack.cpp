@@ -44,6 +44,7 @@ void UBTTask_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
         FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         return;
     }
+    TurretPawn->SetTurretState(ETurretState::Attacking);
 
     // **회전 로직**
     FVector TargetLocation = TargetActor->GetActorLocation();
@@ -54,14 +55,18 @@ void UBTTask_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
     FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, TurretPawn->RotationSpeed);
 
   
-    TurretPawn->TurretNeck->SetWorldRotation(FRotator(CurrentRotation.Pitch, NewRotation.Yaw, CurrentRotation.Roll));
-
+    TurretPawn->TurretNeck->SetWorldRotation(FRotator(NewRotation.Pitch, NewRotation.Yaw, CurrentRotation.Roll));
+    
     // **공격 로직**
     // 아직 타이머가 설정되지 않았다면 공격을 시작합니다.
-    if (!TurretPawn->GetWorld()->GetTimerManager().IsTimerActive(TurretPawn->FireTimerHandle))
+    //어택상태일때만 공격
+    if (TurretPawn->CurrentState == ETurretState::Attacking)
     {
-        TurretPawn->GetWorld()->GetTimerManager().SetTimer(TurretPawn->FireTimerHandle, TurretPawn, &AAITurretPawn::Fire, TurretPawn->FireRate, true);
-        TurretPawn->SetTurretState(ETurretState::Attacking);
+        if (!TurretPawn->GetWorld()->GetTimerManager().IsTimerActive(TurretPawn->FireTimerHandle))
+        {
+            TurretPawn->GetWorld()->GetTimerManager().SetTimer(TurretPawn->FireTimerHandle, TurretPawn, &AAITurretPawn::Fire, TurretPawn->FireRate, true);
+            TurretPawn->SetTurretState(ETurretState::Attacking);
+        }
     }
 }
 
