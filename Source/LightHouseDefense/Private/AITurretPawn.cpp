@@ -102,7 +102,7 @@ void AAITurretPawn::Fire()
         if (HitActor)
         {
             // 데미지주는거 구현해야함
-            DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Green, false, 2.0f);
+            DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Green, false, 10.0f);
         }
     }
 }

@@ -17,6 +17,10 @@ public:
 
     void UpdateZombieCount(int32 RemainingZombies);
 
+    UFUNCTION()
+    void HandlePlayerHPChanged(float NewHP, float MaxHP);
+
+
 protected:
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<class UUserWidget> GameHUDWidgetClass;
@@ -25,4 +29,6 @@ private:
     class UUserWidget* GameHUDWidget;
     class UTextBlock* TimerTextBlock;
     class UTextBlock* ZombieCountTextBlock;
+    class UProgressBar* PlayerHP_ProgressBar = nullptr;
+
 };
