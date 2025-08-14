@@ -1,54 +1,81 @@
+// === LighthouseGameState.cpp ===
 #include "LighthouseGameState.h"
-#include "Kismet/GameplayStatics.h"
-#include "LighthouseHUD.h"
-#include "Engine/World.h"
 #include "TimerManager.h"
 
 void ALighthouseGameState::BeginPlay()
 {
     Super::BeginPlay();
-    StartCountdown();
+
+    // FIX: 자동 카운트다운 시작을 비활성화(주석 처리).
+    //      F키 트리거가 GameMode::StartRun()에서 StartCountdown()을 호출하도록 설계.
+    // StartCountdown(); // <-- 필요 시 자동 시작으로 되돌리려면 주석 해제
+
+    // NOTE: 초기값 1회 방송은 유지(위젯이 붙어도 바로 보이도록)
+    OnTimeUpdated.Broadcast(RemainingTime);
+    OnAliveZombiesChanged.Broadcast(AliveZombiesTotal);
+    OnKillNormalChanged.Broadcast(KillNormal);
+    OnKillTankChanged.Broadcast(KillTank);
 }
 
-// 카운트다운을 시작
 void ALighthouseGameState::StartCountdown()
 {
-    // 1초마다 UpdateTimer() 함수를 반복적으로 호출하도록 타이머 설정
+    // 기존 유지: 1초 타이머 시작
     GetWorldTimerManager().SetTimer(
-        CountdownTimerHandle, // 타이머 핸들
-        this, // 대상 객체
-        &ALighthouseGameState::UpdateTimer, // 호출할 함수
-        1.0f, // 호출 간격 (초 단위)
-        true // 반복 호출 여부 (true: 반복)
+        CountdownTimerHandle,
+        this,
+        &ALighthouseGameState::UpdateTimer,
+        1.0f,
+        true
     );
 }
-// 1초마다 호출되는 함수: 타이머 값을 감소시키고 UI에 알림
+
+void ALighthouseGameState::PauseCountdown()
+{
+    GetWorldTimerManager().PauseTimer(CountdownTimerHandle);
+}
+
+void ALighthouseGameState::ResumeCountdown()
+{
+    GetWorldTimerManager().UnPauseTimer(CountdownTimerHandle);
+}
+
 void ALighthouseGameState::UpdateTimer()
 {
-    RemainingTime--;// 남은 시간 1초 감소
-
+    RemainingTime = FMath::Max(0, RemainingTime - 1);
+    OnTimeUpdated.Broadcast(RemainingTime);
     if (RemainingTime <= 0)
     {
-        RemainingTime = 0; // 0 미만으로 내려가지 않도록 고정
-
-        GetWorldTimerManager().ClearTimer(CountdownTimerHandle); // 타이머 중지
+        GetWorldTimerManager().ClearTimer(CountdownTimerHandle);
     }
-    // 델리게이트를 통해 남은 시간 전달 → HUD 등에서 UI 갱신 가능
-    OnTimeUpdated.Broadcast(RemainingTime);
 }
-// 현재 남은 시간을 반환하는 Getter 함수
+
+// === Getter (시그니처 일치로 LNK 방지) ===
 int32 ALighthouseGameState::GetRemainingTime() const
 {
     return RemainingTime;
 }
 
-// 카운트다운을 일시정지
-void ALighthouseGameState::PauseCountdown()
+// === 상태 변경 함수들(방송 동반, 기존 유지) ===
+void ALighthouseGameState::IncAliveZombiesTotal()
 {
-    GetWorldTimerManager().PauseTimer(CountdownTimerHandle);
+    ++AliveZombiesTotal;
+    OnAliveZombiesChanged.Broadcast(AliveZombiesTotal); // FIX: UI 갱신
 }
-// 카운트다운을 재개
-void ALighthouseGameState::ResumeCountdown()
+
+void ALighthouseGameState::DecAliveZombiesTotal()
 {
-    GetWorldTimerManager().UnPauseTimer(CountdownTimerHandle);
+    AliveZombiesTotal = FMath::Max(0, AliveZombiesTotal - 1);
+    OnAliveZombiesChanged.Broadcast(AliveZombiesTotal); // FIX
+}
+
+void ALighthouseGameState::AddKillNormal()
+{
+    ++KillNormal;
+    OnKillNormalChanged.Broadcast(KillNormal);          // FIX
+}
+
+void ALighthouseGameState::AddKillTank()
+{
+    ++KillTank;
+    OnKillTankChanged.Broadcast(KillTank);              // FIX
 }

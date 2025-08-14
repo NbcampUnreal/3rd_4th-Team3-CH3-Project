@@ -26,7 +26,7 @@ void UHealthComponent::BeginPlay()
     }
 
     // 체력 변경 브로드캐스트 (UI 갱신 등)
-    OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+   // OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 }
 
 void UHealthComponent::Initialize(float InMaxHealth, ETeam InTeam)

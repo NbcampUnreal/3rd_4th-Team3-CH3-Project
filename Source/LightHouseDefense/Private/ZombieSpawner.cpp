@@ -1,10 +1,12 @@
+// === ZombieSpawner.cpp ===
 #include "ZombieSpawner.h"
 #include "Kismet/GameplayStatics.h"
 #include "WaveManagerSubsystem.h"
-#include "AZombieCharacter.h" // 기본 좀비 클래스
+#include "AZombieCharacter.h"
 #include "Engine/World.h"
-#include "Engine/GameInstance.h" 
+#include "Engine/GameInstance.h"
 #include "TimerManager.h"
+#include "HealthSubsystem.h" // FIX
 
 AZombieSpawner::AZombieSpawner()
 {
@@ -15,23 +17,26 @@ void AZombieSpawner::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 일정 간격마다 좀비를 소환하는 타이머 시작
-    GetWorldTimerManager().SetTimerForNextTick(this, &AZombieSpawner::SpawnZombies);
+    // FIX: 자동 시작 비활성화(주석). GameMode::StartRun()에서 StartSpawning() 호출.
+    // GetWorldTimerManager().SetTimerForNextTick(this, &AZombieSpawner::SpawnZombies);
+}
+
+void AZombieSpawner::StartSpawning()
+{
+    // FIX: 수동 시작 진입점 — 기존 SpawnZombies() 호출
+    SpawnZombies();
 }
 
 void AZombieSpawner::SpawnZombies()
 {
     if (!ZombieClass) return;
 
-    // 현재 난이도 기반 정보 가져오기
     if (UWaveManagerSubsystem* WaveManager = GetGameInstance()->GetSubsystem<UWaveManagerSubsystem>())
     {
         TargetSpawnCount = WaveManager->GetCurrentZombieCount();
         CurrentSpawnInterval = WaveManager->GetCurrentSpawnInterval();
         SpawnedCount = 0;
 
-
-        // 일정 간격마다 SpawnSingleZombie 실행
         GetWorldTimerManager().SetTimer(
             SpawnTimerHandle,
             this,
@@ -46,30 +51,34 @@ void AZombieSpawner::SpawnSingleZombie()
 {
     if (SpawnedCount >= TargetSpawnCount)
     {
-        // 목표 수만큼 스폰했으면 종료
         GetWorldTimerManager().ClearTimer(SpawnTimerHandle);
         return;
     }
 
     if (SpawnPoints.Num() == 0) return;
 
-    // 랜덤한 스폰 지점 선택
-    int32 Index = FMath::RandRange(0, SpawnPoints.Num() - 1);
+    const int32 Index = FMath::RandRange(0, SpawnPoints.Num() - 1);
     AActor* SpawnLocation = SpawnPoints[Index];
 
     if (SpawnLocation)
     {
         FActorSpawnParameters SpawnParams;
-        GetWorld()->SpawnActor<AAZombieCharacter>(
+
+        if (AAZombieCharacter* NewZombie = GetWorld()->SpawnActor<AAZombieCharacter>(
             ZombieClass,
             SpawnLocation->GetActorLocation(),
             SpawnLocation->GetActorRotation(),
-            SpawnParams
-        );
+            SpawnParams))
+        {
+            // FIX: 스폰 직후 HS 초기화(Alive++/OnDied 바인딩)
+            if (UHealthSubsystem* HS = GetGameInstance()->GetSubsystem<UHealthSubsystem>())
+            {
+                HS->InitializeHealthForActor(NewZombie);
+            }
 
-        SpawnedCount++;
+            ++SpawnedCount;
+        }
     }
-
 }
 
 void AZombieSpawner::StopSpawning()
