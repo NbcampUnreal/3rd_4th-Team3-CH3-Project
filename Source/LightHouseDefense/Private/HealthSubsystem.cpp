@@ -6,6 +6,7 @@
 #include "LighthouseGameState.h"
 #include "CHCharacter.h"
 #include "LightHouseCharacter.h"  // FIX: 추가
+#include "TankZombieCharacter.h"
 #include "Engine/World.h"
 
 // (기본 초기화)
@@ -99,12 +100,18 @@ void UHealthSubsystem::HandleZombieDied(AActor* Dead)
     {
         if (ALighthouseGameState* GS = World->GetGameState<ALighthouseGameState>())
         {
-            // FIX: 좀비 사망 시 Alive-- & (원하면) 킬 수 증가
+            // Alive-- 는 공통
             GS->DecAliveZombiesTotal();
 
-            // 필요하면 좀비 타입 구분해서 킬 카운트도 올려줘:
-            // GS->AddKillNormal();
-            // 탱크 분기까지 원하면 Dead->IsA(ATankZombieCharacter::StaticClass()) 체크해서 GS->AddKillTank();
+            // FIX: 탱크면 탱크 킬만, 아니면 노멀 킬만
+            if (Dead->IsA(ATankZombieCharacter::StaticClass()))
+            {
+                GS->AddKillTank();    // 탱크 +1
+            }
+            else
+            {
+                GS->AddKillNormal();  // 노멀 +1
+            }
         }
     }
 }
