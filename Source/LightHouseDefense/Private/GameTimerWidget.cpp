@@ -9,20 +9,21 @@ void UGameTimerWidget::NativeConstruct()
 
     if (ALighthouseGameState* GS = Cast<ALighthouseGameState>(UGameplayStatics::GetGameState(this)))
     {
-        GS->OnTimeUpdated.AddDynamic(this, &UGameTimerWidget::UpdateTimeText);
+        // FIX: 중복 바인딩 방지 (PIE 재시작 누적 방지하고 싶으면 AddUniqueDynamic 사용)
+        GS->OnTimeUpdated.AddUniqueDynamic(this, &UGameTimerWidget::UpdateTimeText);
+
+        // FIX: 초기값 즉시 반영
         UpdateTimeText(GS->GetRemainingTime());
     }
 }
 
 void UGameTimerWidget::UpdateTimeText(int32 RemainingSeconds)
 {
-    int32 Minutes = RemainingSeconds / 60;
-    int32 Seconds = RemainingSeconds % 60;
-
-    FString TimeString = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+    const int32 Minutes = RemainingSeconds / 60;
+    const int32 Seconds = RemainingSeconds % 60;
 
     if (TimerText)
     {
-        TimerText->SetText(FText::FromString(TimeString));
+        TimerText->SetText(FText::FromString(FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds)));
     }
 }

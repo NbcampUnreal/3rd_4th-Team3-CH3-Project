@@ -6,7 +6,7 @@
 #include "Kismet/GameplayStatics.h"         // GetPlayerPawn
 #include "GameFramework/PlayerController.h" // GetOwningPlayerController
 #include "HealthComponent.h"                // UHealthComponent
-#include "LighthouseGameState.h"
+#include "LighthouseGameState.h"            // [ADDED]
 
 // 게임 시작 시 HUD 초기화
 void ALighthouseHUD::BeginPlay()
@@ -41,6 +41,15 @@ void ALighthouseHUD::BeginPlay()
             if (!PlayerHP_ProgressBar)
                 UE_LOG(LogTemp, Warning, TEXT("PlayerHP not found! (WBP_GameHUD)"));
 
+            // ========================= [ADDED] =========================
+            // 킬 카운트 텍스트 (정확한 이름 필수)
+            KillCountText_Normal = Cast<UTextBlock>(GameHUDWidget->GetWidgetFromName(TEXT("KillCountText_Normal")));
+            KillCountText_Tank = Cast<UTextBlock>(GameHUDWidget->GetWidgetFromName(TEXT("KillCountText_Tank")));
+            if (!KillCountText_Normal)
+                UE_LOG(LogTemp, Warning, TEXT("KillCountText_Normal not found! (WBP_GameHUD)"));
+            if (!KillCountText_Tank)
+                UE_LOG(LogTemp, Warning, TEXT("KillCountText_Tank not found! (WBP_GameHUD)"));
+            // ==========================================================
 
         }
         else
@@ -81,17 +90,25 @@ void ALighthouseHUD::BeginPlay()
         UE_LOG(LogTemp, Warning, TEXT("PlayerPawn not found on BeginPlay."));
     }
 
-          // HUD가 직접 GameState 델리게이트에 바인딩 (타이밍 문제 해결)
+    // HUD가 직접 GameState 델리게이트에 바인딩 (타이머 + 좀비 카운트 + 킬 분리)
     if (ALighthouseGameState* GS = GetWorld()->GetGameState<ALighthouseGameState>())
     {
         GS->OnTimeUpdated.AddDynamic(this, &ALighthouseHUD::UpdateTimerText);
+        GS->OnAliveZombiesChanged.AddDynamic(this, &ALighthouseHUD::UpdateZombieCount);
+        GS->OnKillNormalChanged.AddDynamic(this, &ALighthouseHUD::UpdateKillCountNormal);
+        GS->OnKillTankChanged.AddDynamic(this, &ALighthouseHUD::UpdateKillCountTank);
+
         // 시작 시 1회 초기 반영
         UpdateTimerText(GS->GetRemainingTime());
-        UE_LOG(LogTemp, Log, TEXT("[HUD] Bound to OnTimeUpdated on GameState"));
+        UpdateZombieCount(GS->GetAliveZombiesTotal());
+        UpdateKillCountNormal(GS->GetKillNormal());
+        UpdateKillCountTank(GS->GetKillTank());
+
+        UE_LOG(LogTemp, Log, TEXT("[HUD] Bound to GameState delegates (time/alive/kill-normal/kill-tank)"));
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("[HUD] GameState not found; timer binding skipped"));
+        UE_LOG(LogTemp, Warning, TEXT("[HUD] GameState not found; bindings skipped"));
     }
 }
 
@@ -106,19 +123,19 @@ void ALighthouseHUD::UpdateTimerText(int32 RemainingTime)
         int32 Minutes = RemainingTime / 60;
         int32 Seconds = RemainingTime % 60;
         // "Time Left: MM:SS" 형식의 문자열 생성
-        FString TimeStr = FString::Printf(TEXT("Time Left: %02d:%02d"), Minutes, Seconds);
+        FString TimeStr = FString::Printf(TEXT("Time: %02d:%02d"), Minutes, Seconds);
         // UI 텍스트 변경
         TimerTextBlock->SetText(FText::FromString(TimeStr));
     }
 }
 
-// 남은 좀비 수를 UI에 업데이트하는 함수
+// 남은 좀비 수를 UI에 업데이트하는 함수(Alive 총합 표시)
 void ALighthouseHUD::UpdateZombieCount(int32 RemainingZombies)
 {
     if (ZombieCountTextBlock) // 텍스트 블록이 존재하는 경우에만 실행
     {
         // "Zombies Left: N" 형식의 문자열 생성
-        FString CountStr = FString::Printf(TEXT("Zombies Left: %d"), RemainingZombies);
+        FString CountStr = FString::Printf(TEXT("Zombies: %d"), RemainingZombies);
         // UI 텍스트 변경
         ZombieCountTextBlock->SetText(FText::FromString(CountStr));
     }
@@ -135,3 +152,25 @@ void ALighthouseHUD::HandlePlayerHPChanged(float NewHP, float MaxHP)
 
     UE_LOG(LogTemp, Log, TEXT("[HUD] HP changed: %.0f / %.0f"), NewHP, MaxHP);
 }
+
+// ========================= [ADDED] =========================
+// 일반 킬 수 UI 반영: "KillCountText_Normal"에 표시
+void ALighthouseHUD::UpdateKillCountNormal(int32 NewCount)
+{
+    if (KillCountText_Normal)
+    {
+        KillCountText_Normal->SetText(FText::FromString(
+            FString::Printf(TEXT("Kills (Normal): %d"), NewCount)));
+    }
+}
+
+// 탱크 킬 수 UI 반영: "KillCountText_Tank"에 표시
+void ALighthouseHUD::UpdateKillCountTank(int32 NewCount)
+{
+    if (KillCountText_Tank)
+    {
+        KillCountText_Tank->SetText(FText::FromString(
+            FString::Printf(TEXT("Kills (Tank): %d"), NewCount)));
+    }
+}
+// ==========================================================

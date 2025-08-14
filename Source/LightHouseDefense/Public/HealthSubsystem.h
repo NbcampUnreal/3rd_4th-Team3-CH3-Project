@@ -3,49 +3,66 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "HealthSubsystem.generated.h"
 
-
 class UHealthComponent;
-class ACHCharacter;           
-class AAZombieCharacter;      
+class ACHCharacter;                 // 플레이어 Pawn
+class AAZombieCharacter;            // 일반 좀비 베이스
+class ATankZombieCharacter;         // 탱크 좀비(있을 때만 사용)
 
-
-//healthSubsystem
-// gameinstance 단위로 존재하는 hp관리 서브시스템
-// 게임 내 액터 (플레이어, 좀비 등)의 체력 초기화 및 사망 처리 로직 연결
-// ondied 델리게이트를 통해 사망 시 gamemode / gamestate에 알림
+/**
+ * UHealthSubsystem
+ * - 게임 내 액터의 HealthComponent 초기화/사망 처리 연결(중앙 허브)
+ * - "좀비"는 스폰 시 Alive++ 등록, 사망 시 Alive-- & Kill(일반/탱크)++
+ * - HUD 갱신은 LighthouseGameState의 델리게이트를 통해 즉시 반영
+ *
+ * 사용 방법:
+ *   스폰 직후 HS->InitializeHealthForActor(Actor) 한 번만 호출하면
+ *   Alive 카운트 & 사망 처리 & UI 반영이 전부 자동으로 동작합니다.
+ */
 UCLASS()
 class LIGHTHOUSEDEFENSE_API UHealthSubsystem : public UGameInstanceSubsystem
 {
     GENERATED_BODY()
 public:
-    // subsystem 초기화 시 호출 (게임 시작 시 한번 실행)
+    /** 게임 시작 시 1회 초기화 (필요 시 로깅/설정 가능) */
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-    //엑터에 HealthComponent를 초기화
-    // 팀 타입 (플레이어, 좀비 등)에 따라 기본 체력 설정
-    //사망 시 처리할 델리게이트 바인딩
+    /**
+     * 스폰/시작 직후 액터의 HealthComponent 초기화 + 중앙 등록
+     * - 플레이어  : 팀 Player, 죽어도 Destroy 안 함
+     * - 좀비(일반/탱크): 팀 Zombie, 죽으면 Destroy 함(옵션)
+     * - 그 외     : 팀 Neutral
+     */
     void InitializeHealthForActor(AActor* Actor);
 
-    // 플레이어시 기본 체력
-    UPROPERTY(EditAnywhere, Category = "Defaults")
-    float DefaultPlayerHP = 100.f;
+    /** 기본값(에디터 조정 가능) */
+    UPROPERTY(EditAnywhere, Category = "Defaults") float DefaultPlayerHP = 100.f;
+    UPROPERTY(EditAnywhere, Category = "Defaults") float DefaultZombieHP = 50.f;
 
-    // 좀비 기본 체력
-    UPROPERTY(EditAnywhere, Category = "Defaults")
-    float DefaultZombieHP = 50.f;
-
-    // 좀비 사망 시 엑터 자동 제거 여부
-    // true: 좀비 사망 시 Pawn 제거 (게임에서 사라짐)
-    // false: 다른 처리여부 (리스폰 등)
-    UPROPERTY(EditAnywhere, Category = "Defaults")
-    bool bDestroyZombieOnDeath = true;
+    /** 좀비 사망 시 즉시 Destroy 여부 (플레이어는 항상 false 권장) */
+    UPROPERTY(EditAnywhere, Category = "Defaults") bool  bDestroyZombieOnDeath = true;
 
 private:
-    // 플레이어 사망 처리 함수 (ondied 델리게이트 연결용)
-    UFUNCTION()
-    void HandlePlayerDied(AActor* Dead);
+    /** 플레이어 사망 → GameMode.StopRun() 호출 */
+    UFUNCTION() void HandlePlayerDied(AActor* Dead);
 
-    // 좀비 사망 처리 함수 (ondied 델리게이트 연결용)
-    UFUNCTION()
-    void HandleZombieDied(AActor* Dead);
+    /** 좀비 사망 → Kill++(일반/탱크) & Alive--, 중복 방지 */
+    UFUNCTION() void HandleZombieDied(AActor* Dead);
+
+    /** 이 액터가 "좀비(일반/탱크 포함)"인지 판별 (파생 클래스 or Tag="Zombie") */
+    bool IsZombieActor(AActor* Actor) const;
+
+    /** 이 액터가 "탱크 좀비"인지 판별 (ATankZombieCharacter 파생) */
+    bool IsTankZombie(AActor* Actor) const;
+
+    /**
+     * 좀비 등록:
+     * - Alive 총합 +1 (GameState에 브로드캐스트 → HUD 즉시 반영)
+     * - OnDied 구독(중복 방지)
+     * - 내부 TrackedZombies 에 기록(중복 등록/감소 방지)
+     */
+    void RegisterZombie(AActor* Actor, UHealthComponent* HC);
+
+private:
+    /** 등록된 좀비 집합 (Destroy/GC 안전 위해 WeakObjectPtr 활용) */
+    UPROPERTY() TSet<TWeakObjectPtr<AActor>> TrackedZombies;
 };

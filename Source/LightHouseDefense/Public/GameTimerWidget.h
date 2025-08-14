@@ -15,6 +15,8 @@ class UGameTimerWidget : public UUserWidget
 
 public:
     virtual void NativeConstruct() override;
+
+    UFUNCTION()
     void UpdateTimeText(int32 RemainingSeconds);
 
 protected:
