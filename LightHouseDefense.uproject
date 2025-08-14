@@ -14,7 +14,8 @@
 				"AIModule",
 				"Engine",
 				"CommonUI",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"UMG"
 			]
 		}
 	],
