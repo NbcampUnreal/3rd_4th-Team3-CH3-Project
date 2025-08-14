@@ -86,7 +86,7 @@ void UHealthSubsystem::HandlePlayerDied(AActor* Dead)
         if (ALightHouseGameModeBase* GM = World->GetAuthGameMode<ALightHouseGameModeBase>())
         {
             // FIX: 플레이어 사망 시 게임 정지 등 처리
-            GM->StopRun();
+           GM->StopRun();
         }
     }
 }

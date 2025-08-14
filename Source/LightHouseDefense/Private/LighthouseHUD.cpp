@@ -7,6 +7,8 @@
 #include "GameFramework/PlayerController.h" // GetOwningPlayerController
 #include "HealthComponent.h"                // UHealthComponent
 #include "LighthouseGameState.h"            // [ADDED]
+#include "LightHouseCharacter.h" 
+#include "EngineUtils.h"
 
 // 게임 시작 시 HUD 초기화
 void ALighthouseHUD::BeginPlay()
@@ -40,6 +42,11 @@ void ALighthouseHUD::BeginPlay()
             PlayerHP_ProgressBar = Cast<UProgressBar>(GameHUDWidget->GetWidgetFromName(TEXT("PlayerHP")));
             if (!PlayerHP_ProgressBar)
                 UE_LOG(LogTemp, Warning, TEXT("PlayerHP not found! (WBP_GameHUD)"));
+
+            // 등대 HP 위젯 찾기 (위젯 이름 정확히: LighthouseHP )
+            LighthouseHP_ProgressBar = Cast<UProgressBar>(GameHUDWidget->GetWidgetFromName(TEXT("LighthouseHP")));
+            if (!LighthouseHP_ProgressBar)
+                UE_LOG(LogTemp, Warning, TEXT("LighthouseHP not found! (WBP_GameHUD)"));
 
             // ========================= [ADDED] =========================
             // 킬 카운트 텍스트 (정확한 이름 필수)
@@ -88,6 +95,43 @@ void ALighthouseHUD::BeginPlay()
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("PlayerPawn not found on BeginPlay."));
+    }
+
+    //등대 hp 바인딩
+    {
+        ALightHouseCharacter* FoundLighthouse = nullptr;
+
+        // 월드에 여러 개 있을 수 있으니 우선 첫 번째만 사용(필요시 더 정교한 선택 로직으로 교체)
+        for (TActorIterator<ALightHouseCharacter> It(GetWorld()); It; ++It)
+        {
+            FoundLighthouse = *It;
+            break;
+        }
+
+        if (FoundLighthouse)
+        {
+            if (UHealthComponent* LH_HC = FoundLighthouse->FindComponentByClass<UHealthComponent>())
+            {
+                // 초기값 즉시 반영
+                HandleLighthouseHPChanged(LH_HC->GetHealth(), LH_HC->GetMaxHealth());
+
+                // 중복 바인딩 방지 후 구독
+                if (!LH_HC->OnHealthChanged.IsAlreadyBound(this, &ALighthouseHUD::HandleLighthouseHPChanged))
+                {
+                    LH_HC->OnHealthChanged.AddDynamic(this, &ALighthouseHUD::HandleLighthouseHPChanged);
+                }
+
+                UE_LOG(LogTemp, Log, TEXT("[HUD] Bound to Lighthouse HealthComponent: %s"), *FoundLighthouse->GetName());
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Found Lighthouse but no HealthComponent on it."));
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("No ALightHouseCharacter found in world. (Place the Lighthouse actor in map)"));
+        }
     }
 
     // HUD가 직접 GameState 델리게이트에 바인딩 (타이머 + 좀비 카운트 + 킬 분리)
@@ -151,6 +195,17 @@ void ALighthouseHUD::HandlePlayerHPChanged(float NewHP, float MaxHP)
     }
 
     UE_LOG(LogTemp, Log, TEXT("[HUD] HP changed: %.0f / %.0f"), NewHP, MaxHP);
+}
+
+// FIX: 등대 HP 반영
+void ALighthouseHUD::HandleLighthouseHPChanged(float NewHP, float MaxHP)
+{
+    if (LighthouseHP_ProgressBar)
+    {
+        const float Pct = (MaxHP > 0.f) ? (NewHP / MaxHP) : 0.f;
+        LighthouseHP_ProgressBar->SetPercent(Pct);
+    }
+    UE_LOG(LogTemp, Log, TEXT("[HUD] Lighthouse HP: %.0f / %.0f"), NewHP, MaxHP);
 }
 
 // ========================= [ADDED] =========================

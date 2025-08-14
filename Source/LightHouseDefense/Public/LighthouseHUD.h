@@ -21,6 +21,9 @@ public:
     UFUNCTION()
     void HandlePlayerHPChanged(float NewHP, float MaxHP);
 
+    UFUNCTION()
+    void HandleLighthouseHPChanged(float NewHP, float MaxHP); //등대hp
+
     // ========================= [ADDED] =========================
     /** Kill(Normal) 값이 바뀔 때 UI에 반영 */
     UFUNCTION()
@@ -40,6 +43,7 @@ private:
     class UTextBlock* TimerTextBlock;
     class UTextBlock* ZombieCountTextBlock;
     class UProgressBar* PlayerHP_ProgressBar = nullptr;
+    class UProgressBar* LighthouseHP_ProgressBar = nullptr;
 
     // ========================= [ADDED] =========================
     // UMG 위젯 이름과 정확히 일치해야 함 (WBP_GameHUD)
