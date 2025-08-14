@@ -34,6 +34,13 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     UCameraComponent* CameraComp;
 
+    // 카메라 상하 각도 제한을 위한 변수
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+    float CameraMinPitch;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+    float CameraMaxPitch;
+
     // 이동
     float NormalSpeed;
     float SprintSpeedMultiplier;
