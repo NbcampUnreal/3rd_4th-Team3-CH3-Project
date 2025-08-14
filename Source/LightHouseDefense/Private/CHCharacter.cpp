@@ -185,11 +185,11 @@ void ACHCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
                 EnhancedInput->BindAction(PlayerController->AimAction, ETriggerEvent::Started, this, &ACHCharacter::StartAiming);
                 EnhancedInput->BindAction(PlayerController->AimAction, ETriggerEvent::Completed, this, &ACHCharacter::StopAiming);
             }
-
-            
+           
         }
     }
 }
+
 
 // 무기 장착
 void ACHCharacter::EquipWeapon(AWeapon* NewWeapon)
@@ -376,4 +376,13 @@ void ACHCharacter::HandleSelfDied(AActor* DeadActor)
     }
 
     UE_LOG(LogTemp, Warning, TEXT("[Player] Died -> movement/input disabled"));
+
+
+}
+
+float ACHCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+    UE_LOG(LogTemp, Warning, TEXT("take damage"));
+    return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
 }

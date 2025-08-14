@@ -86,6 +86,7 @@ protected:
     void Fire();
     // 재장전
     void Reload();
+    void InputFire(const FInputActionValue& Value);
     // 조준 시작 / 정지
     void StartAiming();
     void StopAiming();
@@ -121,8 +122,6 @@ protected:
     void StopCrouch(const FInputActionValue& value);
     UFUNCTION()
     void InputReload(const FInputActionValue& value);
-    UFUNCTION()
-    void InputFire(const FInputActionValue& value);
 
     // 애니메이션 몽타주
 
@@ -171,6 +170,12 @@ protected:
     // 지금 무기 타입 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
     E_WeaponType CurrentWeaponType;
+
+    // 인터페이스 입력
+    UPROPERTY(EditAnywhere, Category = "Input")
+    class UInputAction* InteractAction;
+
+    virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 private:
         // 플레이어 HP 컴포넌트. 캐릭터에 항상 붙어 있게 생성자에서 만들어요.
