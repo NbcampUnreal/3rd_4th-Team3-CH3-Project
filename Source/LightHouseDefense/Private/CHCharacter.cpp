@@ -44,6 +44,9 @@ ACHCharacter::ACHCharacter()
     AimingFOV = 60.0f;
     ZoomInterpSpeed = 20.0f;
 
+    CameraMinPitch = -30.0f; // 최대로 내려가는 각도
+    CameraMaxPitch = 30.0f;  // 최대로 올라가는 각도
+
     // ========================= [ADDED] =========================
     // 플레이어에 HealthComponent를 "항상" 붙여둠 (BeginPlay에서 자동으로 AnyDamage에 바인딩됨)
     HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
@@ -207,6 +210,12 @@ void ACHCharacter::EquipWeapon(AWeapon* NewWeapon)
 
 void ACHCharacter::Fire()
 {
+    if (!CurrentWeapon) return;
+
+    // 선택: 캐릭터 상태 체크 (달리기, 재장전 중 발사 금지)
+    if (bIsSprinting || bIsReloading) return;
+
+    CurrentWeapon->Fire();
 }
 
 // 재장전 입력
@@ -251,7 +260,26 @@ void ACHCharacter::Look(const FInputActionValue& value)
 {
     FVector2D LookInput = value.Get<FVector2D>();
     AddControllerYawInput(LookInput.X);
-    AddControllerPitchInput(LookInput.Y);
+    if (!FMath::IsNearlyZero(LookInput.Y))
+    {
+        // 현재 캐릭터의 컨트롤러
+        AController* MyController = GetController();
+        if (MyController)
+        {
+            // 컨트롤러의 회전 값
+            FRotator CurrentRotation = MyController->GetControlRotation();
+            CurrentRotation.Normalize();
+
+            // 새로운 Pitch 회전 값을 계산
+            float NewPitch = CurrentRotation.Pitch - LookInput.Y;
+
+            // 각도 제한
+            NewPitch = FMath::Clamp(NewPitch, CameraMinPitch, CameraMaxPitch);
+
+            // 컨트롤러의 회전 값을 제한된 값으로 설정
+            MyController->SetControlRotation(FRotator(NewPitch, CurrentRotation.Yaw, CurrentRotation.Roll));
+        }
+    }
 }
 
 // 점프
