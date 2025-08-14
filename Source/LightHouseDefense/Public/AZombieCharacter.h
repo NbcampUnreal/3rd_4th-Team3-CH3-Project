@@ -40,6 +40,8 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     FGenericTeamId TeamID;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
+    float AttackDamage = 100.0f;
 
     virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 protected:
@@ -54,5 +56,13 @@ protected:
     //임시추가 여기까지
   
 private:
+    //애니메이션 노티파이에서 호출될 함수
+    UFUNCTION(BlueprintCallable)
+    void AnimNotify_AttackHit();
+
+    //  공격 범위를 나타내는 충돌 컴포넌트
+    // 이 컴포넌트는 좀비의 손/발에 붙여서 사용할 수 있습니다.
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+    class USphereComponent* AttackCollision;
     
 };

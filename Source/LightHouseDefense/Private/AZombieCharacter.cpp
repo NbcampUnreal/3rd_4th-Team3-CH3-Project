@@ -9,6 +9,7 @@
 #include "HealthComponent.h"
 #include "HealthSubsystem.h"
 #include "AIController.h"
+#include "Components/SphereComponent.h"
 
 // Sets default values
 AAZombieCharacter::AAZombieCharacter()
@@ -41,6 +42,16 @@ AAZombieCharacter::AAZombieCharacter()
     TeamID = FGenericTeamId(1);
 
     HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+
+    //손발 있는 어택 콜리전
+    AttackCollision = CreateDefaultSubobject<USphereComponent>(TEXT("AttackCollision"));
+    if (AttackCollision)
+    {
+        AttackCollision->SetupAttachment(GetMesh(), TEXT("hand_socket")); // "hand_socket"은 스켈레톤의 소켓 이름입니다.
+        AttackCollision->SetSphereRadius(30.f);
+        AttackCollision->SetCollisionProfileName(TEXT("Trigger")); // 충돌 프로파일 설정 (OverlapAll 등으로)
+        AttackCollision->SetGenerateOverlapEvents(false); // 초기에는 비활성화
+    }
 }
 
 FGenericTeamId AAZombieCharacter::GetGenericTeamId() const
@@ -56,6 +67,10 @@ void AAZombieCharacter::BeginPlay()
     if (HealthComp)
     {
         HealthComp->Initialize(DefaultMaxHealth, ETeam::Zombie);
+
+        
+
+
     }
 	
 }
@@ -79,5 +94,35 @@ float AAZombieCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
     UE_LOG(LogTemp, Warning, TEXT("take damage"));
     return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
   
+}
+void AAZombieCharacter::AnimNotify_AttackHit()
+{
+    UE_LOG(LogTemp, Warning, TEXT("AnimNotify_AttackHit Called!")); // <-- 이 로그를 추가하세요
+    // 충돌 컴포넌트 활성화 및 Overlap 이벤트 등록
+    if (AttackCollision)
+    {
+        AttackCollision->SetGenerateOverlapEvents(true);
+        // 충돌 검사 수행
+        TArray<AActor*> OverlappingActors;
+        AttackCollision->GetOverlappingActors(OverlappingActors);
+
+        for (AActor* OverlappingActor : OverlappingActors)
+        {
+            if (OverlappingActor && OverlappingActor != this)
+            {
+                // 데미지를 입힐 대상을 찾음
+                UGameplayStatics::ApplyDamage(
+                    OverlappingActor, // 피해자
+                    AttackDamage, // 데미지 양
+                    GetController(), // 데미지 가해자 컨트롤러
+                    this, // 데미지 가해자 액터
+                    nullptr // 데미지 타입
+                );
+                // 한 번 공격에 여러 대상에게 데미지를 줄 경우 이 반복문을 유지.
+                // 한 번만 데미지를 줄 경우 break;
+                break;
+            }
+        }
+    }
 }
 
