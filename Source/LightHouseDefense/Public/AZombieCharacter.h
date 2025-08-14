@@ -41,7 +41,7 @@ public:
     FGenericTeamId TeamID;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
-    float AttackDamage = 100.0f;
+    float AttackDamage = 20.0f;
 
     virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 protected:

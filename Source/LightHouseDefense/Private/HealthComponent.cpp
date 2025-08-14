@@ -73,6 +73,7 @@ void UHealthComponent::ApplyDamageInternal(float Damage, AController*, AActor*)
     // 체력 변경 브로드캐스트 (UI 갱신 등)
     OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 
+    UE_LOG(LogTemp, Warning, TEXT("Current HP: %f / Max HP: %f"), CurrentHealth, MaxHealth);
     //체력이 0 이하로 떨어진 경우 사망 처리
     if (CurrentHealth <= 0.f)
     {//사망 알림 브로드캐스트 (UhealthSubsystem 등에서 처리)

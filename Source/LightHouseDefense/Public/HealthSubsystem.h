@@ -6,6 +6,7 @@
 class UHealthComponent;
 class ACHCharacter;                 // 플레이어 Pawn
 class AAZombieCharacter;            // 일반 좀비 베이스
+class ALightHouseCharacter;
 class ATankZombieCharacter;         // 탱크 좀비(있을 때만 사용)
 
 /**

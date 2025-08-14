@@ -5,6 +5,7 @@
 #include "LightHouseGameModeBase.h"
 #include "LighthouseGameState.h"
 #include "CHCharacter.h"
+#include "LightHouseCharacter.h"  // FIX: 추가
 #include "Engine/World.h"
 
 // (기본 초기화)
@@ -16,49 +17,62 @@ void UHealthSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UHealthSubsystem::InitializeHealthForActor(AActor* Actor)
 {
     if (!Actor) return;
+    UHealthComponent* HC = Actor->FindComponentByClass<UHealthComponent>();
+    if (!HC) return;
 
-    if (UHealthComponent* HC = Actor->FindComponentByClass<UHealthComponent>())
+    // ───────────────── 등대 ─────────────────
+    if (Actor->IsA(ALightHouseCharacter::StaticClass()))
     {
-        // ───────────────── 플레이어 ─────────────────
-        if (Actor->IsA(ACHCharacter::StaticClass()))
+        HC->Initialize(500.f, ETeam::Player);
+        HC->bDestroyOwnerOnDeath = false;
+
+        // FIX: PIE 재시작 시 델리게이트 누적 방지
+        if (!HC->OnDied.IsAlreadyBound(this, &UHealthSubsystem::HandlePlayerDied))
         {
-            HC->Initialize(DefaultPlayerHP, ETeam::Player);
-            HC->bDestroyOwnerOnDeath = false;
-
-            // FIX: PIE 재시작 시 델리게이트 누적 방지
-            if (!HC->OnDied.IsAlreadyBound(this, &UHealthSubsystem::HandlePlayerDied))
-            {
-                HC->OnDied.AddDynamic(this, &UHealthSubsystem::HandlePlayerDied);
-            }
-            return;
+            HC->OnDied.AddDynamic(this, &UHealthSubsystem::HandlePlayerDied);
         }
-
-        // ───────────────── 좀비 ─────────────────
-        if (Actor->IsA(AAZombieCharacter::StaticClass()))
-        {
-            HC->Initialize(DefaultZombieHP, ETeam::Zombie);
-            HC->bDestroyOwnerOnDeath = bDestroyZombieOnDeath;
-
-            // FIX: 스폰 시점에 Alive++ → UI 즉시 반영
-            if (UWorld* World = Actor->GetWorld())
-            {
-                if (ALighthouseGameState* GS = World->GetGameState<ALighthouseGameState>())
-                {
-                    GS->IncAliveZombiesTotal();
-                }
-            }
-
-            // FIX: 사망 시 Alive-- / Kill++ 연동 (중복 바인딩 방지)
-            if (!HC->OnDied.IsAlreadyBound(this, &UHealthSubsystem::HandleZombieDied))
-            {
-                HC->OnDied.AddDynamic(this, &UHealthSubsystem::HandleZombieDied);
-            }
-            return;
-        }
-
-        // ───────────────── 기타(중립) ─────────────────
-        HC->Initialize(HC->GetMaxHealth(), ETeam::Neutral);
+        return;
     }
+
+    // ───────────────── 플레이어 ─────────────────
+    if (Actor->IsA(ACHCharacter::StaticClass()))
+    {
+        HC->Initialize(100.f, ETeam::Player);
+        HC->bDestroyOwnerOnDeath = false;
+
+        // FIX: PIE 재시작 시 델리게이트 누적 방지
+        if (!HC->OnDied.IsAlreadyBound(this, &UHealthSubsystem::HandlePlayerDied))
+        {
+            HC->OnDied.AddDynamic(this, &UHealthSubsystem::HandlePlayerDied);
+        }
+        return;
+    }
+
+    // ───────────────── 좀비 ─────────────────
+    if (Actor->IsA(AAZombieCharacter::StaticClass()))
+    {
+        HC->Initialize(DefaultZombieHP, ETeam::Zombie);
+        HC->bDestroyOwnerOnDeath = bDestroyZombieOnDeath;
+
+        // Alive++ 로직
+        if (UWorld* World = Actor->GetWorld())
+        {
+            if (ALighthouseGameState* GS = World->GetGameState<ALighthouseGameState>())
+            {
+                GS->IncAliveZombiesTotal();
+            }
+        }
+
+        // FIX: 사망 시 Alive-- / Kill++ 연동 (중복 바인딩 방지)
+        if (!HC->OnDied.IsAlreadyBound(this, &UHealthSubsystem::HandleZombieDied))
+        {
+            HC->OnDied.AddDynamic(this, &UHealthSubsystem::HandleZombieDied);
+        }
+        return;
+    }
+
+    // ───────────────── 기타(중립) ─────────────────
+    HC->Initialize(HC->GetMaxHealth(), ETeam::Neutral);
 }
 
 // ===== 바인딩 대상 구현 =====
