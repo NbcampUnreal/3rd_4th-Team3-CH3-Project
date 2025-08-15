@@ -44,10 +44,10 @@ void ALightHouseGameModeBase::StartRun()
     }
 
     // 2) (선택) 웨이브 진행 타이머 사용 중이면 여기서 Resume/Start
-    if (auto* WM = GetGameInstance()->GetSubsystem<UWaveManagerSubsystem>())
-    {
-        WM->StartWaveProgression(); // 사용 중이 아니면 주석 처리 OK
-    }
+    //if (auto* WM = GetGameInstance()->GetSubsystem<UWaveManagerSubsystem>())
+    //{
+    //    WM->StartWaveProgression(); // 사용 중이 아니면 주석 처리 OK
+    //}
 
     // 3) 모든 스포너 시작
     for (TActorIterator<AZombieSpawner> It(World); It; ++It)

@@ -30,8 +30,8 @@ public:
 private:
     FTimerHandle DifficultyTimerHandle;
 
-    float DifficultyIncreaseInterval = 30.0f;   // 난이도 상승 주기
-    int32 ZombieSpawnCount = 5;                // 초기 좀비 수
+    float DifficultyIncreaseInterval = 1.0f;   // 난이도 상승 주기
+    int32 ZombieSpawnCount = 9999;                // 초기 좀비 수
     float ZombieSpawnInterval = 3.0f;          // 초기 스폰 간격
 
     int32 DifficultyLevel = 0;                 // 현재 난이도

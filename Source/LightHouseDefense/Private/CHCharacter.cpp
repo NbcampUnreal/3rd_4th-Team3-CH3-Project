@@ -403,6 +403,18 @@ void ACHCharacter::HandleSelfDied(AActor* DeadActor)
         PC->SetIgnoreLookInput(true);
     }
 
+    // 사망 애니메이션
+    if (USkeletalMeshComponent* MeshComp = GetMesh())
+    {
+        if (UAnimInstance* AnimInstance = MeshComp->GetAnimInstance())
+        {
+            if (DeathMontage)
+            {
+                AnimInstance->Montage_Play(DeathMontage);
+            }
+        }
+    }
+
     UE_LOG(LogTemp, Warning, TEXT("[Player] Died -> movement/input disabled"));
 
 
