@@ -91,9 +91,9 @@ protected:
     void EquipWeapon(AWeapon* NewWeapon);
     // 무기 발사
     void Fire();
+    void InputFire(const FInputActionValue& Value);
     // 재장전
     void Reload();
-    void InputFire(const FInputActionValue& Value);
     // 조준 시작 / 정지
     void StartAiming();
     void StopAiming();
@@ -173,6 +173,9 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
     UAnimMontage* ShotgunFireIronsightsMontage; // 샷건 조준 발사
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+    UAnimMontage* DeathMontage; // 사망
 
     // 지금 무기 타입 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
