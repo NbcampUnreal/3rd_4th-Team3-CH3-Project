@@ -91,7 +91,7 @@ void AAZombieCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 float AAZombieCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-    UE_LOG(LogTemp, Warning, TEXT("take damage"));
+    UE_LOG(LogTemp, Warning, TEXT("zombie take damage"));
     return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
   
 }
