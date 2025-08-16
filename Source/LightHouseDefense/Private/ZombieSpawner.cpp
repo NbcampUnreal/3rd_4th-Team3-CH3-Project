@@ -45,7 +45,7 @@ void AZombieSpawner::StartSpawning()
             World->GetTimerManager().SetTimer(
                 TankTimerHandle,
                 this,
-                &AZombieSpawner::SpawnSingleTank,
+                &AZombieSpawner::SpawnTanksAtAllPoints,
                 TankSpawnInterval,
                 true // 반복
             );
@@ -128,28 +128,30 @@ void AZombieSpawner::SpawnSingleNormal()
     }
 }
 
-void AZombieSpawner::SpawnSingleTank()
+void AZombieSpawner::SpawnTanksAtAllPoints()
 {
     if (!TankZombieClass) return;
 
-    AActor* SpawnAt = PickRandomSpawnPoint();
-    if (!SpawnAt) return;
-
-    FActorSpawnParameters Params;
-    if (AAZombieCharacter* NewZombie = GetWorld()->SpawnActor<AAZombieCharacter>(
-        TankZombieClass,
-        SpawnAt->GetActorLocation(),
-        SpawnAt->GetActorRotation(),
-        Params))
+    int32 Spawned = 0;
+    for (AActor* SpawnAt : SpawnPoints)
     {
-        // 스폰 직후 HS 초기화(Alive++/OnDied 바인딩)
-        if (UHealthSubsystem* HS = GetGameInstance()->GetSubsystem<UHealthSubsystem>())
-        {
-            HS->InitializeHealthForActor(NewZombie);
-        }
+        if (!SpawnAt) continue;
 
-        // (디버그) 120초마다 스폰되는지 확인
-        // UKismetSystemLibrary::PrintString(this, TEXT("[Spawner] Spawned TANK"));
+        FActorSpawnParameters Params;
+        // [ADDED] 기존 개체가 겹쳐도 반드시 스폰(“안 죽이면 다음이 안 나옴” 방지)
+        Params.SpawnCollisionHandlingOverride = TankSpawnCollision;
+
+        const FVector Loc = SpawnAt->GetActorLocation() + FVector(0, 0, TankSpawnZOffset);
+
+        if (AAZombieCharacter* NewZombie = GetWorld()->SpawnActor<AAZombieCharacter>(
+            TankZombieClass, Loc, SpawnAt->GetActorRotation(), Params))
+        {
+            if (UHealthSubsystem* HS = GetGameInstance()->GetSubsystem<UHealthSubsystem>())
+            {
+                HS->InitializeHealthForActor(NewZombie);
+            }
+            ++Spawned;
+        }
     }
 }
 

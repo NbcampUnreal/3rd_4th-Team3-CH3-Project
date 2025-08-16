@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/EngineTypes.h"
 #include "ZombieSpawner.generated.h"
 
 class AAZombieCharacter;
@@ -66,7 +67,15 @@ private:
 
     /** 스폰 1회 수행(일반/탱크) */
     void SpawnSingleNormal();
-    void SpawnSingleTank();
+    void SpawnTanksAtAllPoints();
     AActor* PickRandomSpawnPoint() const;
+
+    // [ADDED] 탱크 스폰 충돌 처리/오프셋 옵션
+    UPROPERTY(EditAnywhere, Category = "Spawner|Tank")
+    ESpawnActorCollisionHandlingMethod TankSpawnCollision =
+        ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+    UPROPERTY(EditAnywhere, Category = "Spawner|Tank", meta = (ClampMin = "0.0"))
+    float TankSpawnZOffset = 30.f;
 
 };
