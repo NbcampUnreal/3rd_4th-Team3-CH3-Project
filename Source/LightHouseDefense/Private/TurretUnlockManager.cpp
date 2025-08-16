@@ -118,7 +118,7 @@ void ATurretUnlockManager::CheckUnlocks()
             {
                 if (AAITurretPawn* T = Turrets[NextUnlockIndex])
                 {
-                    T->EnableTurret();
+                    T->InstallTurret();
                     UE_LOG(LogTemp, Log, TEXT("[TurretUnlock] Stage %d -> Turret %s ENABLED (Normal:%d/%d, Tank:%d/%d)"),
                         NextUnlockIndex + 1, *T->GetName(), NormalKills, NeedNormal, TankKills, NeedTank);
                 }

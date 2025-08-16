@@ -134,6 +134,7 @@ void AAITurretPawn::Fire()
 void AAITurretPawn::InstallTurret()
 {
     EnableTurret();
+    BEnableTurretNeckbowdown();
 }
 
 void AAITurretPawn::ScanForTargets(float DeltaTime)
@@ -152,5 +153,11 @@ void AAITurretPawn::ScanForTargets(float DeltaTime)
 void AAITurretPawn::EnableTurretNeckbowdown()
 {
     FRotator NeckBowDown(-50, 0, 50);
+    TurretNeckPivot->SetRelativeRotation(NeckBowDown);
+}
+
+void AAITurretPawn::BEnableTurretNeckbowdown()
+{
+    FRotator NeckBowDown(0, 0, 0);
     TurretNeckPivot->SetRelativeRotation(NeckBowDown);
 }

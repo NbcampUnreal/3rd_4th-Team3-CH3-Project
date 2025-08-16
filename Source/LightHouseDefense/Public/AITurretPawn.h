@@ -85,6 +85,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "AI")
     void EnableTurretNeckbowdown();
 
+    UFUNCTION(BlueprintCallable, Category = "AI")
+    void BEnableTurretNeckbowdown();
     // 발사 타이머 핸들
     FTimerHandle FireTimerHandle;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
