@@ -41,8 +41,8 @@ void AAITurretPawn::BeginPlay()
     {
         SpawnDefaultController();
     }
-    //DisableTurret();//테스트용 비활성화 
-    InstallTurret();//테스트용 일단 활성화
+    DisableTurret();//테스트용 비활성화 
+    //InstallTurret();//테스트용 일단 활성화
 }
 
 void AAITurretPawn::Tick(float DeltaTime)
@@ -75,6 +75,17 @@ void AAITurretPawn::DisableTurret()
 void AAITurretPawn::EnableTurret()
 {
     CurrentState = ETurretState::Scanning;
+
+    // [추가] 비활성화 상태에서 켤 때 BT가 안 돌고 있다면 여기서 실행
+    if (AAIController* MyController = Cast<AAIController>(GetController()))
+    {
+        // 이미 실행 중이면 알아서 건너뜀
+        if (BehaviorTreeAsset)
+        {
+            // RunBehaviorTree는 여러 번 호출해도 안전(이미 실행 중이면 내부에서 처리)
+            MyController->RunBehaviorTree(BehaviorTreeAsset);
+        }
+    }
 }
 
 void AAITurretPawn::Fire()
