@@ -20,6 +20,22 @@ ACHCharacter::ACHCharacter()
 
     CurrentWeaponType = E_WeaponType::AK47;
     CurrentWeapon = nullptr;
+    AK47FireHipMontage = nullptr;
+    AK47FireIronsightsMontage = nullptr;
+    AK47ReloadMontage = nullptr;
+    DeathMontage = nullptr;
+    InteractAction = nullptr;
+    M16FireHipMontage = nullptr;
+    M16FireIronsightsMontage = nullptr;
+    M16ReloadMontage = nullptr;
+    PistolFireHipMontage = nullptr;
+    PistolReloadMontage = nullptr;
+    ShotgunFireHipMontage = nullptr;
+    ShotgunFireIronsightsMontage = nullptr;
+    ShotGunReloadMontage = nullptr;
+    SniperRifleFireHipMontage = nullptr;
+    SniperRifleFireIronsightsMontage = nullptr;
+    SniperRifleReloadMontage = nullptr;
 
     // 스프링암 설정
     SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
