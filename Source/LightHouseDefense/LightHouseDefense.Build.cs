@@ -20,8 +20,8 @@ public class LightHouseDefense : ModuleRules
             "NavigationSystem",
             "GameplayTasks",
             "GameplayTags",
-            "UMG"
-        });
+            "UMG",
+            "CommonInput"});
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
 

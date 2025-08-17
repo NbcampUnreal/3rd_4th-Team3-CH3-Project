@@ -15,4 +15,5 @@ namespace FrontendGameplayTags // Frontend 관련 Gameplay Tag들을 모아둔 �
     // Frontend 개별 위젯 태그 선언
     LIGHTHOUSEDEFENSE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_PressAnyKeyScreen); // "아무 키나 누르세요" 화면 태그
     LIGHTHOUSEDEFENSE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_MainMenuScreen);    // 메인 메뉴 화면 태그
+    LIGHTHOUSEDEFENSE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Frontend_Widget_ConfirmScreen); // 확인 창
 }

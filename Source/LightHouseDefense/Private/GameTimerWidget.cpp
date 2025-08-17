@@ -31,6 +31,9 @@ void UGameTimerWidget::NativeDestruct()
 
 void UGameTimerWidget::UpdateTimeText(int32 RemainingSeconds)
 {
+    // [NEW] 캐시 갱신
+    CachedRemainingSeconds = RemainingSeconds; // [NEW]
+
     const int32 Minutes = RemainingSeconds / 60;
     const int32 Seconds = RemainingSeconds % 60;
 
@@ -38,6 +41,14 @@ void UGameTimerWidget::UpdateTimeText(int32 RemainingSeconds)
     {
         TimerText->SetText(FText::FromString(FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds)));
     }
+
+    // [NEW] 60초 이하로 "처음 진입"했을 때 한 번만 브로드캐스트
+    if (!bOneMinuteEventFired && RemainingSeconds <= 60) // [NEW]
+    {                                                    // [NEW]
+        bOneMinuteEventFired = true;                     // [NEW]
+        OnOneMinuteLeft.Broadcast();                     // [NEW]
+        UE_LOG(LogTemp, Log, TEXT("[TimerHUD] <= 60s → OnOneMinuteLeft.Broadcast()")); // [NEW]
+    }                                                    // [NEW]
 
     // [ADDED] 0초가 되면 한 번만 GameClear UI 표시
     if (!bGameClearShown && RemainingSeconds <= 0)

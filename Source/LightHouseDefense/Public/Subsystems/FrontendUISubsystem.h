@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "FrontendType/FrontendEnumTypes.h"
 #include "FrontendUISubsystem.generated.h"
 
 class UWidget_PrimaryLayout;
@@ -46,6 +47,11 @@ public:
         TSoftClassPtr<UWidget_ActivatableBase> InSoftWidgetClass, // 로드할 SoftClass UI 위젯
         TFunction<void(EAsyncPushWidgetState, UWidget_ActivatableBase*)> AysncPushStateCallback // 상태 변화 시 호출될 콜백
     );
+
+    void PushConfirmScreenToModalStackAynsc(EConfirmScreenType InScreenType,
+        const FText& InScreenTitle,
+        const FText& InScreenMsg,
+        TFunction<void(EConfirmScreenButtonType)> ButtonClickedCallback);
 
     UPROPERTY(BlueprintAssignable)
     FOnButtonDescriptionTextUpdatedDelegate OnButtonDescriptionTextUpdated;
