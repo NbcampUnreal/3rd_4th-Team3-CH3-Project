@@ -109,6 +109,8 @@ void ACHCharacter::BeginPlay()
             EquipWeapon(Spawned); // HUD 재바인딩 포함
         }
     }
+
+    SwitchToPistol();
 }
 
 void ACHCharacter::Tick(float DeltaTime)
