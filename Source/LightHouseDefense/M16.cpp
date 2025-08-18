@@ -5,6 +5,8 @@
 
 AM16::AM16()
 {
+    WeaponType = E_WeaponType::M16;
+
     // 기본 총기 특성 설정
     Damage = 20.0f;  // M16은 AK47보다 적은 피해
     Range = 1000.0f;  // M16의 발사 거리

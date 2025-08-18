@@ -36,6 +36,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Weapon|Ammo")
     virtual void Reload();
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    E_WeaponType WeaponType = E_WeaponType::Pistol;
+
     // 이펙트/사운드: 무기 BP에서 구현
     UFUNCTION(BlueprintImplementableEvent, Category = "Weapon")
     void PlayFireEffect();

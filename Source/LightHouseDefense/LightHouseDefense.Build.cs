@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
+using System.IO;
 using UnrealBuildTool.Rules;
 
 public class LightHouseDefense : ModuleRules
@@ -21,10 +22,14 @@ public class LightHouseDefense : ModuleRules
             "GameplayTasks",
             "GameplayTags",
             "UMG",
+            "Slate",
+            "SlateCore",
             "CommonInput"});
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
 
+        PublicIncludePaths.Add(ModuleDirectory);
+        PrivateIncludePaths.Add(ModuleDirectory);
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 
