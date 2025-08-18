@@ -14,6 +14,10 @@ class LIGHTHOUSEDEFENSE_API AStartRunVolume : public AActor
 public:
     AStartRunVolume();
 
+    // 에디터에서 사운드 에셋을 할당할 변수
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+    class USoundBase* BackgroundMusic;
+
 protected:
     virtual void BeginPlay() override;
 
@@ -26,4 +30,8 @@ protected:
 
 private:
     bool bPlayerInside = false;
+
+    UPROPERTY()
+    class UAudioComponent* MusicComponent;
+
 };
