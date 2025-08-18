@@ -94,7 +94,13 @@ public:
     //발사 소리
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
     USoundBase* FireSound;
+    //발사 이펙트
+    UPROPERTY(EditDefaultsOnly, Category = "Combat")
+    UParticleSystem* MuzzleFlashEffect;
 
+    //피격 이펙트
+    UPROPERTY(EditDefaultsOnly, Category = "Combat")
+    UParticleSystem* ImpactEffect;
 protected:
     // 스캔 회전 로직에 사용되는 변수
     float CurrentYawRotation = 0.0f;
