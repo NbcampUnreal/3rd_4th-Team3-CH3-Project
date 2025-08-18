@@ -67,6 +67,17 @@ void ALighthouseHUD::BeginPlay()
                 UE_LOG(LogTemp, Warning, TEXT("AmmoText not found! Check widget name in WBP_GameHUD."));
             }
 
+            // 추가: UnlockText_1~4 캐싱(없으면 nullptr)
+            for (int32 i = 0; i < 4; ++i)
+            {
+                const FString Name = FString::Printf(TEXT("UnlockText_%d"), i + 1);
+                UnlockTextBlocks[i] = Cast<UTextBlock>(GameHUDWidget->GetWidgetFromName(*Name));
+                if (UnlockTextBlocks[i])
+                {
+                    UnlockTextBlocks[i]->SetVisibility(ESlateVisibility::Hidden);
+                }
+            }
+
             // 무기와 AmmoText 연결 시도 (지금 당장/그리고 주기적 재시도)
             TryBindWeaponToAmmoText(); // 1회 시도
             if (!GetWorldTimerManager().IsTimerActive(TH_TryBindWeapon))
@@ -323,4 +334,35 @@ void ALighthouseHUD::RebindAmmoToCurrentWeapon()
 {
     // 이미 만들어둔 바인딩 로직을 그대로 재사용
     TryBindWeaponToAmmoText();
+}
+
+// 추가: 해금 메시지 표시/자동 숨김
+void ALighthouseHUD::ShowUnlockText(int32 Index, const FString& Message)
+{
+    if (Index < 1 || Index > 4) return;
+
+    UTextBlock* Target = UnlockTextBlocks[Index - 1];
+    if (!Target) return;
+
+    Target->SetText(FText::FromString(Message));
+    Target->SetVisibility(ESlateVisibility::Visible);
+
+    // 기존 타이머 있으면 먼저 해제
+    if (GetWorldTimerManager().IsTimerActive(UnlockHideHandles[Index - 1]))
+    {
+        GetWorldTimerManager().ClearTimer(UnlockHideHandles[Index - 1]);
+    }
+
+    // 안전하게 Weak 포인터로 캡처해서 3초 뒤 숨기기
+    TWeakObjectPtr<UTextBlock> WeakTarget = Target;
+    GetWorldTimerManager().SetTimer(
+        UnlockHideHandles[Index - 1],
+        [WeakTarget]()
+        {
+            if (WeakTarget.IsValid())
+            {
+                WeakTarget->SetVisibility(ESlateVisibility::Hidden);
+            }
+        },
+        5.0f, false);
 }
