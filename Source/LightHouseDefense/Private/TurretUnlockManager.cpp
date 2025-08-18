@@ -4,6 +4,9 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "HealthComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "LighthouseHUD.h"
+#include "GameFramework/PlayerController.h"
 #include "AZombieCharacter.h"      
 #include "TankZombieCharacter.h" 
 
@@ -99,12 +102,7 @@ void ATurretUnlockManager::HandleZombieDied(AActor* DeadActor)
 
 void ATurretUnlockManager::CheckUnlocks()
 {
-    // [추가] 배열 길이 보호
-    const int32 MaxStages = FMath::Min3(
-        4, // 논리상 4대
-        NormalKillThresholds.Num(),
-        TankKillThresholds.Num()
-    );
+    const int32 MaxStages = FMath::Min3(4, NormalKillThresholds.Num(), TankKillThresholds.Num());
 
     while (NextUnlockIndex < MaxStages)
     {
@@ -113,21 +111,32 @@ void ATurretUnlockManager::CheckUnlocks()
 
         if (NormalKills >= NeedNormal && TankKills >= NeedTank)
         {
-            // 해당 인덱스 터렛 활성화
             if (Turrets.IsValidIndex(NextUnlockIndex))
             {
                 if (AAITurretPawn* T = Turrets[NextUnlockIndex])
                 {
                     T->InstallTurret();
-                    UE_LOG(LogTemp, Log, TEXT("[TurretUnlock] Stage %d -> Turret %s ENABLED (Normal:%d/%d, Tank:%d/%d)"),
-                        NextUnlockIndex + 1, *T->GetName(), NormalKills, NeedNormal, TankKills, NeedTank);
+                    UE_LOG(LogTemp, Log, TEXT("[TurretUnlock] Stage %d -> %s ENABLED"),
+                        NextUnlockIndex + 1, *T->GetName());
                 }
             }
-            ++NextUnlockIndex; // 다음 단계로
+
+            // 추가: HUD에 “터렛 n 해금!” 띄우기
+            if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+            {
+                if (ALighthouseHUD* HUD = PC->GetHUD<ALighthouseHUD>())
+                {
+                    const FString Msg = FString::Printf(TEXT("터렛 %d 해금!"),
+                        NextUnlockIndex + 1);
+                    HUD->ShowUnlockText(NextUnlockIndex + 1, Msg);
+                }
+            }
+
+            ++NextUnlockIndex;
         }
         else
         {
-            break; // 아직 조건 미달이면 중단
+            break;
         }
     }
 }

@@ -97,6 +97,10 @@ void AAITurretPawn::Fire()
       {
           UGameplayStatics::PlaySoundAtLocation(this, FireSound, MuzzleLocation->GetComponentLocation());
       }
+      if (MuzzleFlashEffect)
+      {
+          UGameplayStatics::SpawnEmitterAttached(MuzzleFlashEffect, MuzzleLocation);
+      }
      
     FVector StartLocation = MuzzleLocation->GetComponentLocation();
     FVector ForwardVector = MuzzleLocation->GetForwardVector();
@@ -115,13 +119,18 @@ void AAITurretPawn::Fire()
         QueryParams
     );
 
-    DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 0.1f);
+   
     if (bHit)
     {
         AActor* HitActor = HitResult.GetActor();
         if (HitActor)
         {
-            // 데미지주는거 구현해야함
+
+            if (ImpactEffect)
+            {
+                UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, HitResult.ImpactPoint, HitResult.ImpactNormal.Rotation());
+            }
+      
             UGameplayStatics::ApplyDamage(
                 HitActor,       // 데미지를 받을 액터
                 TurretDamage,           // 적용할 기본 데미지 양
@@ -129,7 +138,7 @@ void AAITurretPawn::Fire()
                 this,       // 데미지를 준 액터 (자기자신)
                 nullptr // 데미지 유형 
             );
-            DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Green, false, 10.0f);
+            
         }
     }
   }

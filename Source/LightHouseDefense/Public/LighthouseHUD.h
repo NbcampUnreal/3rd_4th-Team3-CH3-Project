@@ -47,6 +47,9 @@ public:
     UFUNCTION()
     void TryBindWeaponToAmmoText(); // [ADD]
     // ================================================================================
+    // ADD: 터렛 해금 메시지 보여주기
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ShowUnlockText(int32 Index /*1~4*/, const FString& Message);
 
 protected:
     UPROPERTY(EditDefaultsOnly)
@@ -70,4 +73,8 @@ private:
     FTimerHandle TH_TryBindWeapon;                    // 무기 생길 때까지 재시도
     // ================================================================================
     TWeakObjectPtr<class AWeapon> BoundWeapon;  // [ADD] 현재 AmmoTextBlock에 연결돼있는 무기
+
+    // ADD: Unlock 텍스트 캐시 + 자동숨김 타이머
+    UPROPERTY() class UTextBlock* UnlockTextBlocks[4] = { nullptr, nullptr, nullptr, nullptr };
+    FTimerHandle UnlockHideHandles[4];
 };
