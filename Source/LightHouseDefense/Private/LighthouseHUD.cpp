@@ -7,8 +7,10 @@
 #include "GameFramework/PlayerController.h" // GetOwningPlayerController
 #include "HealthComponent.h"                // UHealthComponent
 #include "LighthouseGameState.h"            // [ADDED]
-#include "LightHouseCharacter.h" 
+#include "LightHouseCharacter.h"            // 등대(목표물) 액터
 #include "EngineUtils.h"
+#include "../Weapon.h"                          // [ADD] SetAmmoTextBlock 호출
+#include "CHCharacter.h"                     // [ADD] 플레이어 캐릭터 (현재 무기 접근)
 
 // 게임 시작 시 HUD 초기화
 void ALighthouseHUD::BeginPlay()
@@ -26,15 +28,15 @@ void ALighthouseHUD::BeginPlay()
             // 화면에 위젯 표시
             GameHUDWidget->AddToViewport();
             UE_LOG(LogTemp, Log, TEXT("GameHUDWidget added to viewport."));
+
             // 위젯 안에서 이름이 "TimerText"인 텍스트 블록 찾기
             TimerTextBlock = Cast<UTextBlock>(GameHUDWidget->GetWidgetFromName(TEXT("TimerText")));
             // 위젯 안에서 이름이 "ZombieCountText"인 텍스트 블록 찾기
             ZombieCountTextBlock = Cast<UTextBlock>(GameHUDWidget->GetWidgetFromName(TEXT("ZombieCountText")));
 
-            // 타이머 텍스트 블록이 없으면 경고 출력
+            // 타이머/좀비 텍스트 블록이 없으면 경고
             if (!TimerTextBlock)
                 UE_LOG(LogTemp, Warning, TEXT("TimerTextBlock not found! Check widget hierarchy and name."));
-            // 좀비 카운트 텍스트 블록이 없으면 경고 출력
             if (!ZombieCountTextBlock)
                 UE_LOG(LogTemp, Warning, TEXT("ZombieCountTextBlock not found! Check widget hierarchy and name."));
 
@@ -58,6 +60,23 @@ void ALighthouseHUD::BeginPlay()
                 UE_LOG(LogTemp, Warning, TEXT("KillCountText_Tank not found! (WBP_GameHUD)"));
             // ==========================================================
 
+            // ========================= [ADD] AmmoText 찾기 & 바인딩 시도 =========================
+            AmmoTextBlock = Cast<UTextBlock>(GameHUDWidget->GetWidgetFromName(TEXT("AmmoText")));
+            if (!AmmoTextBlock)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("AmmoText not found! Check widget name in WBP_GameHUD."));
+            }
+
+            // 무기와 AmmoText 연결 시도 (지금 당장/그리고 주기적 재시도)
+            TryBindWeaponToAmmoText(); // 1회 시도
+            if (!GetWorldTimerManager().IsTimerActive(TH_TryBindWeapon))
+            {
+                GetWorldTimerManager().SetTimer(
+                    TH_TryBindWeapon,
+                    this, &ALighthouseHUD::TryBindWeaponToAmmoText,
+                    0.25f, true); // 무기가 늦게 생기면 주기적으로 재시도
+            }
+            // ======================================================================================
         }
         else
         {
@@ -97,7 +116,7 @@ void ALighthouseHUD::BeginPlay()
         UE_LOG(LogTemp, Warning, TEXT("PlayerPawn not found on BeginPlay."));
     }
 
-    //등대 hp 바인딩
+    // 등대 hp 바인딩
     {
         ALightHouseCharacter* FoundLighthouse = nullptr;
 
@@ -229,3 +248,79 @@ void ALighthouseHUD::UpdateKillCountTank(int32 NewCount)
     }
 }
 // ==========================================================
+
+// ========================= [ADD] 무기 찾기 & AmmoText 연결 =========================
+void ALighthouseHUD::TryBindWeaponToAmmoText()
+{
+    // 0) AmmoTextBlock 확보
+    if (!AmmoTextBlock && GameHUDWidget)
+    {
+        AmmoTextBlock = Cast<UTextBlock>(GameHUDWidget->GetWidgetFromName(TEXT("AmmoText")));
+    }
+    if (!AmmoTextBlock) return;
+
+    // 1) 플레이어 폰
+    APawn* PlayerPawn =
+        (GetOwningPlayerController() && GetOwningPlayerController()->GetPawn())
+        ? GetOwningPlayerController()->GetPawn()
+        : UGameplayStatics::GetPlayerPawn(this, 0);
+    if (!PlayerPawn) return;
+
+    // 2) 캐릭터에서 "현재 장착 무기"만 신뢰 (hand = nullptr)
+    AWeapon* FoundWeapon = nullptr;
+    if (ACHCharacter* CH = Cast<ACHCharacter>(PlayerPawn))
+    {
+        FoundWeapon = CH->GetCurrentWeapon();
+    }
+
+    // ★★★ hand/None 이면: 이전 바인딩 해제 + 플레이스홀더 찍기 ★★★
+    if (!FoundWeapon)
+    {
+        if (BoundWeapon.IsValid())
+        {
+            BoundWeapon->SetAmmoTextBlock(nullptr); // 언바인딩
+            BoundWeapon.Reset();
+        }
+        SetAmmoPlaceholder();                      // "- / -"
+        return;                                    // 폴백 검색 금지!
+    }
+
+    // 3) 같은 무기에 이미 연결돼 있으면 아무 것도 안 함
+    if (BoundWeapon.Get() == FoundWeapon)
+    {
+        return;
+    }
+
+    // 4) 다른 무기로 교체: 이전 연결 끊고 새로 바인딩
+    if (BoundWeapon.IsValid())
+    {
+        BoundWeapon->SetAmmoTextBlock(nullptr);
+    }
+
+    FoundWeapon->SetAmmoTextBlock(AmmoTextBlock);  // 내부에서 1회 Update됨
+    BoundWeapon = FoundWeapon;
+
+    UE_LOG(LogTemp, Log, TEXT("[HUD] AmmoText bound to %s"), *FoundWeapon->GetName());
+}
+// ================================================================================
+
+void ALighthouseHUD::SetAmmoPlaceholder()
+{
+    // 위젯에서 아직 못가져왔으면 한 번 더 시도
+    if (!AmmoTextBlock && GameHUDWidget)
+    {
+        AmmoTextBlock = Cast<UTextBlock>(GameHUDWidget->GetWidgetFromName(TEXT("AmmoText")));
+    }
+
+    if (AmmoTextBlock)
+    {
+        AmmoTextBlock->SetText(FText::FromString(TEXT("- / -")));
+        UE_LOG(LogTemp, Log, TEXT("[HUD] AmmoText set to placeholder (- / -)"));
+    }
+}
+
+void ALighthouseHUD::RebindAmmoToCurrentWeapon()
+{
+    // 이미 만들어둔 바인딩 로직을 그대로 재사용
+    TryBindWeaponToAmmoText();
+}

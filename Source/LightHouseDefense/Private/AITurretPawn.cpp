@@ -31,6 +31,7 @@ AAITurretPawn::AAITurretPawn()
     RotationSpeed = 50.0f;
     FireRate = 1.0f;
     CurrentState = ETurretState::Disabled;
+
 }
 
 void AAITurretPawn::BeginPlay()
@@ -92,8 +93,11 @@ void AAITurretPawn::Fire()
 {
   if(CurrentState==ETurretState::Attacking)
   {
-
-    
+      if (FireSound)
+      {
+          UGameplayStatics::PlaySoundAtLocation(this, FireSound, MuzzleLocation->GetComponentLocation());
+      }
+     
     FVector StartLocation = MuzzleLocation->GetComponentLocation();
     FVector ForwardVector = MuzzleLocation->GetForwardVector();
     FVector EndLocation = StartLocation + (ForwardVector * FireRange);

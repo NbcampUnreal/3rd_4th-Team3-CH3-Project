@@ -91,6 +91,9 @@ public:
     FTimerHandle FireTimerHandle;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
     float TurretDamage = 20.0f; // 기본 데미지 양
+    //발사 소리
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+    USoundBase* FireSound;
 
 protected:
     // 스캔 회전 로직에 사용되는 변수
