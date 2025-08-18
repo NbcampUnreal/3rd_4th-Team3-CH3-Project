@@ -69,5 +69,10 @@ void AStartRunVolume::HandleStartPressed()
     {
         GM->StartRun(); // FIX: 타이머/스폰 시작 트리거
         UE_LOG(LogTemp, Log, TEXT("[StartRunVolume] F pressed → StartRun()"));
+        if (BackgroundMusic)
+        {
+            // 월드에 음악을 재생하고 반환된 AudioComponent를 저장합니다.
+            MusicComponent = UGameplayStatics::SpawnSound2D(this, BackgroundMusic, 1.0f, 1.0f, 0.0f);
+        }
     }
 }
