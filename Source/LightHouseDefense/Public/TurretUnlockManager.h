@@ -2,12 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "E_WeaponType.h"
 #include "TurretUnlockManager.generated.h"
 
 class AAITurretPawn;
 class UHealthComponent;
-class AAZombieCharacter;      
-class ATankZombieCharacter;   
+class AAZombieCharacter;
+class ATankZombieCharacter;
 
 UCLASS()
 class LIGHTHOUSEDEFENSE_API ATurretUnlockManager : public AActor
@@ -16,6 +17,9 @@ class LIGHTHOUSEDEFENSE_API ATurretUnlockManager : public AActor
 
 public:
     ATurretUnlockManager();
+    // 단계별로 보상(해금)할 무기 타입. 인덱스 = 터렛 단계(0~3)
+    //UPROPERTY(EditAnywhere, Category = "Rewards")
+    //TArray<E_WeaponType> RewardWeapons;
 
 protected:
     virtual void BeginPlay() override;
@@ -46,6 +50,10 @@ protected:
 
     // [추가] 다음에 열 차례의 터렛 인덱스
     int32 NextUnlockIndex = 0;
+
+    // 터렛 1~4 해금 시 줄 보상 무기
+    UPROPERTY(EditAnywhere, Category = "Unlock")
+    TArray<E_WeaponType> RewardWeapons;
 
 public:
     // [세팅] 레벨에 배치된 4대 터렛을 할당

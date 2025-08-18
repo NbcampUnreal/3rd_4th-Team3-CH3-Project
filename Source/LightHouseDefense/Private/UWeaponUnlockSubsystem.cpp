@@ -8,6 +8,47 @@
 #include "LighthouseHUD.h"
 #include "GameFramework/PlayerController.h"
 
+FString UWeaponUnlockSubsystem::GetWeaponDisplayName(E_WeaponType Type) const
+{
+    if (const UEnum* Enum = StaticEnum<E_WeaponType>())
+        return Enum->GetDisplayNameTextByValue((int64)Type).ToString();
+    return TEXT("Weapon");
+}
+
+int32 UWeaponUnlockSubsystem::GetHudSlotForWeapon(E_WeaponType Type) const
+{
+    switch (Type)
+    {
+    case E_WeaponType::AK47:        return 1;
+    case E_WeaponType::M16:         return 2;
+    case E_WeaponType::Shotgun:     return 3;
+    case E_WeaponType::SniperRifle: return 4;
+    default:                        return 1;
+    }
+}
+
+void UWeaponUnlockSubsystem::ForceUnlock(E_WeaponType Type, bool bNotifyHUD /*=true*/)
+{
+    if (Type == E_WeaponType::None || Type == E_WeaponType::Hand) return;
+    if (Unlocked.Contains(Type)) return;
+
+    Unlocked.Add(Type);
+
+    if (bNotifyHUD)
+    {
+        if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+        {
+            if (ALighthouseHUD* HUD = PC->GetHUD<ALighthouseHUD>())
+            {
+                HUD->ShowUnlockText(GetHudSlotForWeapon(Type),
+                    FString::Printf(TEXT("%s 해금!"), *GetWeaponDisplayName(Type)));
+            }
+        }
+    }
+
+    OnWeaponUnlocked.Broadcast(Type, TotalKills);
+}
+
 void UWeaponUnlockSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
@@ -110,23 +151,17 @@ void UWeaponUnlockSubsystem::CheckUnlocks()
         {
             Unlocked.Add(Type);
 
-            // HUD 알려주기
+            // 무기 해금 토스트
             if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
             {
                 if (ALighthouseHUD* HUD = PC->GetHUD<ALighthouseHUD>())
                 {
-                    FString Name;
-                    switch (Type)
-                    {
-                    case E_WeaponType::Pistol:       Name = TEXT("Pistol"); break;
-                    case E_WeaponType::AK47:         Name = TEXT("AK47"); break;
-                    case E_WeaponType::M16:          Name = TEXT("M16"); break;
-                    case E_WeaponType::Shotgun:      Name = TEXT("Shotgun"); break;
-                    case E_WeaponType::SniperRifle:  Name = TEXT("Sniper Rifle"); break;
-                    default:                         Name = TEXT("Weapon"); break;
-                    }
-                    const FString Msg = FString::Printf(TEXT("%s 해금! (총 %d킬)"), *Name, TotalKills);
-                    HUD->ShowUnlockText(static_cast<int32>(Type), Msg); // HUD에 이미 비슷한 토스트가 있음
+                    const FString Msg = FString::Printf(
+                        TEXT("%s 해금! (총 %d킬)"),
+                        *GetWeaponDisplayName(Type),
+                        TotalKills
+                    );
+                    HUD->ShowWeaponUnlockText(Msg);
                 }
             }
 

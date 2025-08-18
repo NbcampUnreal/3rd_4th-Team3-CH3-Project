@@ -184,6 +184,13 @@ void ALighthouseHUD::BeginPlay()
     {
         UE_LOG(LogTemp, Warning, TEXT("[HUD] GameState not found; bindings skipped"));
     }
+
+    // 무기 해금 토스트 TextBlock 캐싱
+    WeaponUnlockText = Cast<UTextBlock>(GameHUDWidget->GetWidgetFromName(TEXT("WeaponUnlockText")));
+    if (WeaponUnlockText)
+    {
+        WeaponUnlockText->SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 // 남은 시간을 UI에 업데이트하는 함수
@@ -365,4 +372,33 @@ void ALighthouseHUD::ShowUnlockText(int32 Index, const FString& Message)
             }
         },
         5.0f, false);
+}
+
+// 무기 해금 전용 토스트
+void ALighthouseHUD::ShowWeaponUnlockText(const FString& Message, float Duration /*=3.f*/)
+{
+    if (!WeaponUnlockText) return;
+
+    WeaponUnlockText->SetText(FText::FromString(Message));
+    WeaponUnlockText->SetVisibility(ESlateVisibility::Visible);
+
+    // 중복 타이머 초기화
+    if (GetWorldTimerManager().IsTimerActive(TH_WeaponUnlockHide))
+    {
+        GetWorldTimerManager().ClearTimer(TH_WeaponUnlockHide);
+    }
+
+    // Duration 후 자동 숨김
+    TWeakObjectPtr<UTextBlock> WeakText = WeaponUnlockText;
+    GetWorldTimerManager().SetTimer(
+        TH_WeaponUnlockHide,
+        [WeakText]()
+        {
+            if (WeakText.IsValid())
+            {
+                WeakText->SetVisibility(ESlateVisibility::Hidden);
+            }
+        },
+        Duration, false
+    );
 }

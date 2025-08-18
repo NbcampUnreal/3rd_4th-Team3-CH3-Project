@@ -51,6 +51,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void ShowUnlockText(int32 Index /*1~4*/, const FString& Message);
 
+    // 무기 해금 전용 토스트
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ShowWeaponUnlockText(const FString& Message, float Duration = 3.f);
+
 protected:
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<class UUserWidget> GameHUDWidgetClass;
@@ -77,4 +81,8 @@ private:
     // ADD: Unlock 텍스트 캐시 + 자동숨김 타이머
     UPROPERTY() class UTextBlock* UnlockTextBlocks[4] = { nullptr, nullptr, nullptr, nullptr };
     FTimerHandle UnlockHideHandles[4];
+
+    // WBP에 새로 만든 TextBlock
+    UPROPERTY() class UTextBlock* WeaponUnlockText = nullptr;
+    FTimerHandle TH_WeaponUnlockHide;
 };

@@ -31,6 +31,10 @@ public:
     UFUNCTION(BlueprintPure, Category = "Unlock")
     int32 GetTotalKills() const { return TotalKills; }
 
+    // ▼ 추가: 터렛 해금 시 강제 해금용
+    UFUNCTION(BlueprintCallable, Category = "Unlock")
+    void ForceUnlock(E_WeaponType Type, bool bNotifyHUD = true);
+
 protected:
     void TryBindExistingZombies();       // 시작 시 월드에 있는 좀비들 바인딩
     void OnActorSpawned(AActor* Spawned);
@@ -55,4 +59,7 @@ private:
 
     // 한 번만 초기화하려는 플래그
     bool bInitialized = false;
+
+    FString GetWeaponDisplayName(E_WeaponType Type) const;
+    int32   GetHudSlotForWeapon(E_WeaponType Type) const;
 };

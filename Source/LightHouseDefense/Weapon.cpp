@@ -192,28 +192,15 @@ void AWeapon::Fire()
 {
     // === [추가] 무기 해금 여부 체크 (Pistol은 요구치 0으로 항상 true) ===
     {
-        // === 해금 체크: 서브시스템 없으면 기본 차단(피스톨만 허용) ===
+        // 해금 체크 
         UWeaponUnlockSubsystem* Unlock = GetGameInstance()
-            ? GetGameInstance()->GetSubsystem<UWeaponUnlockSubsystem>()
-            : nullptr;
+            ? GetGameInstance()->GetSubsystem<UWeaponUnlockSubsystem>() : nullptr;
 
-        if (!Unlock)
-        {
-            // GameInstance 미지정 등으로 서브시스템이 아직 없을 때:
-            // Pistol만 예외 허용, 나머지는 전부 차단
-            if (WeaponType != E_WeaponType::Pistol)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("[Weapon] UnlockSubsystem missing. Block fire for %d"), (int32)WeaponType);
-                return;
-            }
+        if (!Unlock) {
+            if (WeaponType != E_WeaponType::Pistol) return;
         }
-        else
-        {
-            if (!Unlock->IsUnlocked(WeaponType))
-            {
-                UE_LOG(LogTemp, Warning, TEXT("[Weapon] Locked weapon. Need kills. Type=%d"), (int32)WeaponType);
-                return; // 아직 해금 전 → 발사 차단
-            }
+        else if (!Unlock->IsUnlocked(WeaponType)) {
+            return;
         }
     }
     // 오너가 플레이어 캐릭터가 아니면(또는 Hand에서 Owner를 null로 만들었다면) 차단

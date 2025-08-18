@@ -6,6 +6,7 @@
 #include "HealthComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "LighthouseHUD.h"
+#include "UWeaponUnlockSubsystem.h"
 #include "GameFramework/PlayerController.h"
 #include "AZombieCharacter.h"      
 #include "TankZombieCharacter.h" 
@@ -19,6 +20,14 @@ ATurretUnlockManager::ATurretUnlockManager()
     // 요청하신 기본 임계값
     NormalKillThresholds = { 20, 40, 60, 80 };
     TankKillThresholds = { 2,  4,  6,  8 };
+
+    // 터렛 1~4 해금 시 표시/보상할 무기(원하는 순서로 바꿔도 됨)
+    RewardWeapons = {
+        E_WeaponType::AK47,
+        E_WeaponType::M16,
+        E_WeaponType::Shotgun,
+        E_WeaponType::SniperRifle
+    };
 }
 
 void ATurretUnlockManager::BeginPlay()
@@ -111,32 +120,30 @@ void ATurretUnlockManager::CheckUnlocks()
 
         if (NormalKills >= NeedNormal && TankKills >= NeedTank)
         {
+            // 터렛 설치
             if (Turrets.IsValidIndex(NextUnlockIndex))
             {
                 if (AAITurretPawn* T = Turrets[NextUnlockIndex])
                 {
                     T->InstallTurret();
-                    UE_LOG(LogTemp, Log, TEXT("[TurretUnlock] Stage %d -> %s ENABLED"),
-                        NextUnlockIndex + 1, *T->GetName());
                 }
             }
 
-            // 추가: HUD에 “터렛 n 해금!” 띄우기
+            // 터렛 해금 토스트 (슬롯 1~4)
             if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
             {
                 if (ALighthouseHUD* HUD = PC->GetHUD<ALighthouseHUD>())
                 {
-                    const FString Msg = FString::Printf(TEXT("터렛 %d 해금!"),
-                        NextUnlockIndex + 1);
+                    const FString Msg = FString::Printf(TEXT("터렛 %d 해금!"), NextUnlockIndex + 1);
                     HUD->ShowUnlockText(NextUnlockIndex + 1, Msg);
                 }
             }
 
-            ++NextUnlockIndex;
+            ++NextUnlockIndex; // 다음 단계로
         }
         else
         {
-            break;
+            break; // 조건 미달 → 종료
         }
     }
 }
