@@ -198,15 +198,29 @@ void ALighthouseHUD::UpdateTimerText(int32 RemainingTime)
 {
     UE_LOG(LogTemp, Log, TEXT("UpdateTimerText called with RemainingTime: %d"), RemainingTime);
 
-    if (TimerTextBlock) // 텍스트 블록이 존재하는 경우에만 실행
+    if (TimerTextBlock)
     {
-        // 분, 초 계산
-        int32 Minutes = RemainingTime / 60;
-        int32 Seconds = RemainingTime % 60;
-        // "Time Left: MM:SS" 형식의 문자열 생성
-        FString TimeStr = FString::Printf(TEXT("Time: %02d:%02d"), Minutes, Seconds);
-        // UI 텍스트 변경
+        const int32 Minutes = RemainingTime / 60;
+        const int32 Seconds = RemainingTime % 60;
+        const FString TimeStr = FString::Printf(TEXT("Time: %02d:%02d"), Minutes, Seconds);
         TimerTextBlock->SetText(FText::FromString(TimeStr));
+    }
+
+    // 60초 이하 '처음 진입' 시 경고 시작
+    if (!bOneMinuteEventFired && RemainingTime <= 60 && RemainingTime > 0)
+    {
+        bOneMinuteEventFired = true;
+        UE_LOG(LogTemp, Log, TEXT("[HUD] <=60s → StartOneMinuteWarning()"));
+        StartOneMinuteWarning();
+    }
+
+    // 0초 도달 시 한 번만 GameClear UI
+    if (!bGameClearShown && RemainingTime <= 0)
+    {
+        bGameClearShown = true;
+        UE_LOG(LogTemp, Warning, TEXT("[HUD] time==0 → ShowGameClearUI()"));
+        StopOneMinuteWarning();
+        ShowGameClearUI();
     }
 }
 
@@ -401,4 +415,65 @@ void ALighthouseHUD::ShowWeaponUnlockText(const FString& Message, float Duration
         },
         Duration, false
     );
+}
+
+void ALighthouseHUD::StartOneMinuteWarning()
+{
+    if (!TimerTextBlock) return;
+
+    // 현재 색 저장(최초만)
+    NormalTimerColor = TimerTextBlock->ColorAndOpacity.GetSpecifiedColor();
+    TimerTextBlock->SetColorAndOpacity(WarnTimerColor);
+
+    if (!GetWorldTimerManager().IsTimerActive(TH_MinuteBlink))
+    {
+        GetWorldTimerManager().SetTimer(
+            TH_MinuteBlink, this, &ALighthouseHUD::TickOneMinuteBlink, 0.5f, true);
+    }
+}
+
+void ALighthouseHUD::StopOneMinuteWarning()
+{
+    if (GetWorldTimerManager().IsTimerActive(TH_MinuteBlink))
+    {
+        GetWorldTimerManager().ClearTimer(TH_MinuteBlink);
+    }
+    bBlinkOn = false;
+    if (TimerTextBlock)
+    {
+        TimerTextBlock->SetRenderOpacity(1.f);
+        TimerTextBlock->SetColorAndOpacity(NormalTimerColor);
+    }
+}
+
+void ALighthouseHUD::TickOneMinuteBlink()
+{
+    if (!TimerTextBlock) return;
+    bBlinkOn = !bBlinkOn;
+    TimerTextBlock->SetRenderOpacity(bBlinkOn ? 0.35f : 1.0f);
+}
+
+void ALighthouseHUD::ShowGameClearUI()
+{
+    if (!GameClearWidgetClass)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[HUD] GameClearWidgetClass not set"));
+        return;
+    }
+    UUserWidget* W = CreateWidget<UUserWidget>(GetWorld(), GameClearWidgetClass);
+    if (!W) return;
+
+    W->AddToViewport(10000); // 최상단
+
+    APlayerController* PC = PlayerOwner.Get() ? PlayerOwner.Get() : UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (PC)
+    {
+        UGameplayStatics::SetGamePaused(this, true);
+        PC->bShowMouseCursor = true;
+
+        FInputModeUIOnly Mode;
+        Mode.SetWidgetToFocus(W->TakeWidget());
+        Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+        PC->SetInputMode(Mode);
+    }
 }

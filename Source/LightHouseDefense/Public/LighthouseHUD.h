@@ -59,6 +59,10 @@ protected:
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<class UUserWidget> GameHUDWidgetClass;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+    TSubclassOf<class UUserWidget> GameClearWidgetClass; // GameClear 위젯 BP 지정
+
+
 private:
     class UUserWidget* GameHUDWidget = nullptr;
     class UTextBlock* TimerTextBlock = nullptr;
@@ -85,4 +89,18 @@ private:
     // WBP에 새로 만든 TextBlock
     UPROPERTY() class UTextBlock* WeaponUnlockText = nullptr;
     FTimerHandle TH_WeaponUnlockHide;
+
+    bool bOneMinuteEventFired = false; // 60초 경고 1회만
+    bool bGameClearShown = false;      // 클리어 UI 1회만
+
+    // 60초 경고(색/깜빡임)
+    FTimerHandle TH_MinuteBlink;
+    bool bBlinkOn = false;
+    FLinearColor NormalTimerColor = FLinearColor::White;
+    FLinearColor WarnTimerColor = FLinearColor(1.f, 0.f, 0.f, 1.f);
+
+    void ShowGameClearUI();
+    void StartOneMinuteWarning();
+    void StopOneMinuteWarning();
+    void TickOneMinuteBlink();
 };
