@@ -55,8 +55,8 @@ void UWeaponUnlockSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
     // 요구치 설정 (원하는 값으로 수정 가능)
     RequiredKills.Add(E_WeaponType::Pistol, 0);
-    RequiredKills.Add(E_WeaponType::AK47, 20);
-    RequiredKills.Add(E_WeaponType::M16, 40);
+    RequiredKills.Add(E_WeaponType::AK47, 10);
+    RequiredKills.Add(E_WeaponType::M16, 30);
     RequiredKills.Add(E_WeaponType::Shotgun, 60);
     RequiredKills.Add(E_WeaponType::SniperRifle, 80);
 
