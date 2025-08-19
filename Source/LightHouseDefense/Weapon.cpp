@@ -1,5 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
+
 #include "Weapon.h"
 #include "WeaponProjectile.h"
 #include "LighthouseHUD.h"                 // [ADD]
@@ -22,7 +24,6 @@ static bool IsBPEnumEqualByName(const UObject* Obj, FName VarName, const TCHAR* 
 {
     if (!Obj) return false;
 
-    // (신) EnumProperty 경로
     if (const FEnumProperty* EP = FindFProperty<FEnumProperty>(Obj->GetClass(), VarName))
     {
         const void* Ptr = EP->ContainerPtrToValuePtr<void>(Obj);
@@ -32,12 +33,10 @@ static bool IsBPEnumEqualByName(const UObject* Obj, FName VarName, const TCHAR* 
 
         const FString ByName = En->GetNameStringByValue(Raw);
         const FString ByDisp = En->GetDisplayNameTextByValue(Raw).ToString();
-        // 둘 중 하나라도 일치하면 true
         return ByName.Equals(WantedName, ESearchCase::IgnoreCase) ||
             ByDisp.Equals(WantedName, ESearchCase::IgnoreCase);
     }
 
-    // (구) ByteProperty + Enum 포인터 경로
     if (const FByteProperty* BP = FindFProperty<FByteProperty>(Obj->GetClass(), VarName))
     {
         const void* Ptr = BP->ContainerPtrToValuePtr<void>(Obj);
@@ -58,14 +57,12 @@ AWeapon::AWeapon()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    // 루트 없으면 생성
     if (!GetRootComponent())
     {
         USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
         SetRootComponent(Root);
     }
 
-    // 총구(Muzzle)
     Muzzle = CreateDefaultSubobject<USceneComponent>(TEXT("Muzzle"));
     if (Muzzle)
     {
@@ -79,14 +76,12 @@ void AWeapon::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 시작 시 값 보정
     CurrentAmmo = FMath::Clamp(CurrentAmmo, 0, MagazineSize);
 
-    // ===== UI 초기 동기화 =====
-    OnAmmoChanged.Broadcast(CurrentAmmo, ReserveAmmo); // [ADD]
-    OnReloadChanged.Broadcast(bIsReloading);           // [ADD]
-    OnCanFireChanged.Broadcast(bCanFire);              // [ADD]
-    UpdateAmmoUI();                                    // [ADD] 텍스트 즉시 동기화
+    OnAmmoChanged.Broadcast(CurrentAmmo, ReserveAmmo);
+    OnReloadChanged.Broadcast(bIsReloading);
+    OnCanFireChanged.Broadcast(bCanFire);
+    UpdateAmmoUI();
 }
 
 void AWeapon::Tick(float DeltaTime)
@@ -94,11 +89,10 @@ void AWeapon::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 }
 
-// [ADD] 위젯에서 텍스트블록 포인터를 넘겨주는 함수
 void AWeapon::SetAmmoTextBlock(UTextBlock* InText)
 {
     AmmoTextBlock = InText;
-    UpdateAmmoUI(); // 연결 즉시 1회 표기
+    UpdateAmmoUI();
 }
 
 void AWeapon::Equip(APawn* NewOwnerPawn, FName SocketName)
@@ -120,14 +114,13 @@ void AWeapon::Equip(APawn* NewOwnerPawn, FName SocketName)
     SetActorEnableCollision(true);
     SetActorHiddenInGame(false);
 
-    // ===================== [ADD] HUD에 재바인드 요청 =====================
     if (AController* C = NewOwnerPawn->GetController())
     {
         if (APlayerController* PC = Cast<APlayerController>(C))
         {
             if (ALighthouseHUD* HUD = PC->GetHUD<ALighthouseHUD>())
             {
-                HUD->RebindAmmoToCurrentWeapon();   // 장착 후 UI 재연결
+                HUD->RebindAmmoToCurrentWeapon();
             }
         }
     }
@@ -136,9 +129,7 @@ void AWeapon::Equip(APawn* NewOwnerPawn, FName SocketName)
         if (ALighthouseHUD* HUD = PC->GetHUD<ALighthouseHUD>())
             HUD->RebindAmmoToCurrentWeapon();
 
-    // 이미 TextBlock이 연결돼 있었다면 최신값 한 번 더 밀어줌(안전)
     UpdateAmmoUI();
-    // ====================================================================
 }
 
 void AWeapon::Reload()
@@ -149,7 +140,7 @@ void AWeapon::Reload()
 
     bIsReloading = true;
     OnReloadStarted();
-    OnReloadChanged.Broadcast(true); // [ADD]
+    OnReloadChanged.Broadcast(true);
 
     GetWorldTimerManager().SetTimer(TH_Reload, this, &AWeapon::FinishReload, ReloadTime, false);
 }
@@ -165,15 +156,15 @@ void AWeapon::FinishReload()
     ReserveAmmo -= ToLoad;
 
     OnReloadFinished();
-    OnReloadChanged.Broadcast(false);                    // [ADD]
-    OnAmmoChanged.Broadcast(CurrentAmmo, ReserveAmmo);   // [ADD]
-    UpdateAmmoUI();                                      // [ADD] UI 갱신
+    OnReloadChanged.Broadcast(false);
+    OnAmmoChanged.Broadcast(CurrentAmmo, ReserveAmmo);
+    UpdateAmmoUI();
 }
 
 void AWeapon::StartFireCooldown()
 {
     bCanFire = false;
-    OnCanFireChanged.Broadcast(false); // [ADD]
+    OnCanFireChanged.Broadcast(false);
 
     const float Interval = (FireRate > 0.f) ? (1.f / FireRate) : 0.1f;
     GetWorldTimerManager().SetTimer(
@@ -181,7 +172,7 @@ void AWeapon::StartFireCooldown()
         [this]()
         {
             bCanFire = true;
-            OnCanFireChanged.Broadcast(true); // [ADD]
+            OnCanFireChanged.Broadcast(true);
         },
         Interval,
         false
@@ -190,53 +181,57 @@ void AWeapon::StartFireCooldown()
 
 void AWeapon::Fire()
 {
-    // === [추가] 무기 해금 여부 체크 (Pistol은 요구치 0으로 항상 true) ===
+    // === 무기 해금 체크 ===
     {
-        // 해금 체크 
         UWeaponUnlockSubsystem* Unlock = GetGameInstance()
-            ? GetGameInstance()->GetSubsystem<UWeaponUnlockSubsystem>() : nullptr;
+            ? GetGameInstance()->GetSubsystem<UWeaponUnlockSubsystem>()
+            : nullptr;
 
-        if (!Unlock) {
-            if (WeaponType != E_WeaponType::Pistol) return;
+        if (!Unlock)
+        {
+            if (WeaponType != E_WeaponType::Pistol)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[Weapon] UnlockSubsystem missing. Block fire for %d"), (int32)WeaponType);
+                return;
+            }
         }
-        else if (!Unlock->IsUnlocked(WeaponType)) {
-            return;
+        else
+        {
+            if (!Unlock->IsUnlocked(WeaponType))
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[Weapon] Locked weapon. Need kills. Type=%d"), (int32)WeaponType);
+                return;
+            }
         }
     }
-    // 오너가 플레이어 캐릭터가 아니면(또는 Hand에서 Owner를 null로 만들었다면) 차단
-    const ACHCharacter* CH = Cast<ACHCharacter>(GetOwner());
-    if (!CH)
-        return;
 
-    // Hand 상태면 발사 금지
+    const ACHCharacter* CH = Cast<ACHCharacter>(GetOwner());
+    if (!CH) return;
+
     if (CH->GetCurrentWeaponType() == E_WeaponType::Hand)
     {
         UE_LOG(LogTemp, Verbose, TEXT("Fire blocked: Hand state"));
         return;
     }
 
-    // 예전 무기 인스턴스에서 호출되는 걸 방지
-    if (CH->GetCurrentWeapon() != this)
-        return;
+    if (CH->GetCurrentWeapon() != this) return;
 
-    // 발사 가능 여부
     if (!bCanFire || bIsReloading) return;
 
-    // 탄 없음 → 자동 재장전/드라이 파이어
     if (CurrentAmmo <= 0)
     {
-        if (bAutoReload && ReserveAmmo > 0) // [ADD]
+        if (bAutoReload && ReserveAmmo > 0)
         {
-            Reload(); // [ADD]
+            Reload();
         }
         else
         {
-            OnDryFire(); // [ADD]
+            OnDryFire();
         }
         return;
     }
 
-    // 카메라 위치/방향 (Instigator 우선)
+    // 카메라 위치/방향
     FVector  CamLoc = FVector::ZeroVector;
     FRotator CamRot = FRotator::ZeroRotator;
 
@@ -250,17 +245,15 @@ void AWeapon::Fire()
     }
     else
     {
-        // 폴백: 무기 기준
         CamLoc = Muzzle ? Muzzle->GetComponentLocation() : GetActorLocation();
         CamRot = GetActorRotation();
     }
 
-    // 사거리(최소 가드)
-    const float TraceDist = FMath::Max(Range, 1000.f); // [MOD]
+    const float TraceDist = FMath::Max(Range, 1000.f);
     const ECollisionChannel TraceChannel = ECC_Visibility;
 
-    // ===== 샷건(다중) / 일반(단일) 분기 =====
-    if (PelletCount > 1) // 샷건 모드
+    // 히트스캔 (노란 점만 표시, 선은 없음) 
+    if (PelletCount > 1) // 샷건
     {
         for (int32 i = 0; i < PelletCount; ++i)
         {
@@ -284,16 +277,14 @@ void AWeapon::Fire()
                     Hit.GetActor(), Damage, ShotRot.Vector(), Hit,
                     GetInstigatorController(), this, nullptr
                 );
-                DrawDebugLine(GetWorld(), CamLoc, Hit.ImpactPoint, FColor::Red, false, 1.2f, 0, 1.2f);
+
+                // 선은 제거, 맞은 곳에 점만
                 DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 6.f, FColor::Yellow, false, 1.2f);
             }
-            else
-            {
-                DrawDebugLine(GetWorld(), CamLoc, TraceEnd, FColor::Blue, false, 1.2f, 0, 1.2f);
-            }
+            
         }
     }
-    else // 일반 무기: 단일 레이
+    else // 단일
     {
         const FVector TraceEnd = CamLoc + CamRot.Vector() * TraceDist;
 
@@ -308,21 +299,18 @@ void AWeapon::Fire()
                 Hit.GetActor(), Damage, CamRot.Vector(), Hit,
                 GetInstigatorController(), this, nullptr
             );
-            DrawDebugLine(GetWorld(), CamLoc, Hit.ImpactPoint, FColor::Red, false, 1.2f, 0, 1.2f);
+
+            // 선은 제거, 맞은 곳에 점만
             DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 8.f, FColor::Yellow, false, 1.2f);
         }
-        else
-        {
-            DrawDebugLine(GetWorld(), CamLoc, TraceEnd, FColor::Blue, false, 1.2f, 0, 1.2f);
-        }
-
+        
     }
 
     // 후처리
     PlayFireEffect();
     CurrentAmmo = FMath::Max(0, CurrentAmmo - 1);
-    OnAmmoChanged.Broadcast(CurrentAmmo, ReserveAmmo); // [ADD]
-    UpdateAmmoUI();                                    // [ADD] UI 갱신
+    OnAmmoChanged.Broadcast(CurrentAmmo, ReserveAmmo);
+    UpdateAmmoUI();
     StartFireCooldown();
 }
 
@@ -335,7 +323,6 @@ void AWeapon::Unequip()
     SetActorEnableCollision(false);
 }
 
-// [ADD] 텍스트블록으로 실제 UI 갱신
 void AWeapon::UpdateAmmoUI()
 {
     if (AmmoTextBlock.IsValid())
@@ -348,3 +335,4 @@ void AWeapon::UpdateAmmoUI()
         AmmoTextBlock->SetText(AmmoTxt);
     }
 }
+
