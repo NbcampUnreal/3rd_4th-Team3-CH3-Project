@@ -62,4 +62,17 @@ private:
 
     FString GetWeaponDisplayName(E_WeaponType Type) const;
     int32   GetHudSlotForWeapon(E_WeaponType Type) const;
+
+    // 엔진 월드 라이프사이클 훅
+    void OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IV);
+    void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);
+
+    // 월드별 스폰 핸들(레벨 전환 대비)
+    TMap<TWeakObjectPtr<UWorld>, FDelegateHandle> SpawnHandles;
+
+    FDelegateHandle PostWorldInitHandle;
+    FDelegateHandle WorldCleanupHandle;
+
+    void RegisterSpawnHook(UWorld* World);
+    void UnregisterSpawnHook(UWorld* World);
 };

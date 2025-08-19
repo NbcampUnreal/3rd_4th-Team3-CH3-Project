@@ -66,6 +66,12 @@ void UWeaponUnlockSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         if (KV.Value <= 0) Unlocked.Add(KV.Key);
     }
 
+    // 월드 생성/정리 시 재바인딩
+    PostWorldInitHandle = FWorldDelegates::OnPostWorldInitialization.AddUObject(
+        this, &UWeaponUnlockSubsystem::OnPostWorldInit);
+    WorldCleanupHandle = FWorldDelegates::OnWorldCleanup.AddUObject(
+        this, &UWeaponUnlockSubsystem::OnWorldCleanup);
+
     // 월드 액터 스폰 훅: 앞으로 스폰되는 좀비도 자동 바인딩
     if (UWorld* W = GetWorld())
     {
@@ -82,12 +88,56 @@ void UWeaponUnlockSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UWeaponUnlockSubsystem::Deinitialize()
 {
-    if (UWorld* W = GetWorld())
-    {
-        if (SpawnHandle.IsValid())
-            W->RemoveOnActorSpawnedHandler(SpawnHandle);
-    }
+    // 엔진 델리게이트 해제
+    if (PostWorldInitHandle.IsValid())
+        FWorldDelegates::OnPostWorldInitialization.Remove(PostWorldInitHandle);
+    if (WorldCleanupHandle.IsValid())
+        FWorldDelegates::OnWorldCleanup.Remove(WorldCleanupHandle);
+
+    // 월드별 스폰 훅 해제
+    for (auto& Pair : SpawnHandles)
+        if (UWorld* W = Pair.Key.Get())
+            W->RemoveOnActorSpawnedHandler(Pair.Value);
+    SpawnHandles.Empty();
+
     Super::Deinitialize();
+}
+
+void UWeaponUnlockSubsystem::OnPostWorldInit(UWorld* World, const UWorld::InitializationValues)
+{
+    if (!World || !World->IsGameWorld()) return; // PIE 프리뷰/에디터 제외
+
+    RegisterSpawnHook(World);
+    // 이미 떠 있는 좀비도 묶어줌
+    for (TActorIterator<AActor> It(World); It; ++It) TryBindZombie(*It);
+
+    UE_LOG(LogTemp, Log, TEXT("[Unlock] Registered in world: %s"), *World->GetName());
+}
+
+void UWeaponUnlockSubsystem::OnWorldCleanup(UWorld* World, bool, bool)
+{
+    UnregisterSpawnHook(World);
+
+    // stale 좀비 제거
+    for (auto It = BoundZombies.CreateIterator(); It; ++It)
+        if (!It->IsValid() || (It->Get()->GetWorld() == World)) It.RemoveCurrent();
+}
+
+void UWeaponUnlockSubsystem::RegisterSpawnHook(UWorld* World)
+{
+    if (SpawnHandles.Contains(World)) return;
+    FDelegateHandle H = World->AddOnActorSpawnedHandler(
+        FOnActorSpawned::FDelegate::CreateUObject(this, &UWeaponUnlockSubsystem::OnActorSpawned));
+    SpawnHandles.Add(World, H);
+}
+
+void UWeaponUnlockSubsystem::UnregisterSpawnHook(UWorld* World)
+{
+    if (FDelegateHandle* H = SpawnHandles.Find(World))
+    {
+        if (World) World->RemoveOnActorSpawnedHandler(*H);
+        SpawnHandles.Remove(World);
+    }
 }
 
 void UWeaponUnlockSubsystem::TryBindExistingZombies()
